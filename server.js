@@ -26,5 +26,5 @@ app.post("/api/orders",(q,r)=>{let {customer,items,payment}=q.body;if(!customer?
 app.put("/api/admin/orders/:id",auth,(q,r)=>{let d=read(),o=d.orders.find(x=>x.id===q.params.id);if(!o)return r.status(404).json({error:"Not found"});let s=["Pending","Confirmed","Processing","Shipped","Delivered","Cancelled"];if(!s.includes(q.body.status))return r.status(400).json({error:"Invalid status"});o.status=q.body.status;write(d);r.json(o)});
 app.put("/api/admin/orders/:id/payment",auth,(q,r)=>{let d=read(),o=d.orders.find(x=>x.id===q.params.id);if(!o)return r.status(404).json({error:"Not found"});if(!["Pending","Verified","Rejected"].includes(q.body.status))return r.status(400).json({error:"Invalid payment status"});o.payment.status=q.body.status;write(d);r.json(o)});
 app.put("/api/admin/settings",auth,(q,r)=>{let d=read();d.settings={...d.settings,...q.body};write(d);r.json(d.settings)});
-app.get("*",(q,r)=>r.sendFile(path.join(__dirname,"public","index.html")));
+app.get("(.*)",(q,r)=>r.sendFile(path.join(__dirname,"public","index.html")));
 app.listen(PORT,()=>console.log("Shop running on "+PORT));
