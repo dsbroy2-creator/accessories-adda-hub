@@ -23,4 +23,7 @@ function method(){return document.querySelector('input[name="pm"]:checked').valu
 function payInfo(){let m=method();payInfo.innerHTML=m==="cod"?`<p>পণ্য হাতে পাওয়ার সময় টাকা দিন।</p>`:`<div class="pay"><b>${m==="bkash"?"bKash":"Nagad"} নম্বর:</b> ${m==="bkash"?e(settings.bkash||"Admin Panel থেকে নম্বর সেট করুন"):e(settings.nagad||"Admin Panel থেকে নম্বর সেট করুন")}<p>উপরের নম্বরে মোট টাকা পাঠিয়ে <b>Transaction ID</b> নিচে দিন:</p><input id="tx" placeholder="Transaction ID"></div>`}
 async function order(){let m=method(),c={name:name.value.trim(),phone:phone.value.trim(),address:address.value.trim(),note:note.value.trim()};if(!c.name||!c.phone||!c.address)return alert("নাম, ফোন ও ঠিকানা দিন");let transactionId=m==="cod"?"":(document.getElementById("tx")?.value.trim()||"");if(m!=="cod"&&!transactionId)return alert("Transaction ID দিন");let r=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customer:c,items:cart,payment:{method:m,transactionId}})}),d=await r.json();if(!r.ok)return alert(d.error||"Order failed");cart=[];count.textContent=0;closeM("checkoutModal");oid.textContent=d.id;success.style.display="block"}
 load();
-</script></body></html>
+</script><div style="text-align: center; padding: 15px; background: #111; margin-top: 20px;">
+  <a href="/admin.html" style="color: #c9a227; text-decoration: none; font-weight: bold; font-size: 15px;">🔒 Admin Panel Login</a>
+</div>
+</body></html>
