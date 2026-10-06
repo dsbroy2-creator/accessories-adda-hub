@@ -1,43 +1,271 @@
-ACCESSORIES ADDA HUB — COMPLETE SHOP
-========================================
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accessories Adda Hub</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; }
+    .header { background: #111; color: #fff; text-align: center; padding: 25px 10px; }
+    .header img.logo { max-height: 85px; max-width: 220px; object-fit: contain; margin-bottom: 10px; border-radius: 6px; }
+    .header h1 { margin: 0; font-size: 28px; color: #fff; }
+    .header h1 span { color: #c9a227; }
+    .header p { margin: 6px 0 0; color: #ccc; font-size: 14px; }
+    .container { max-width: 1000px; margin: auto; padding: 15px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+    .card { background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
+    .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; background: #eee; }
+    .card h3 { margin: 12px 0 6px; font-size: 18px; }
+    .card .price { font-size: 20px; font-weight: bold; color: #c9a227; margin-bottom: 10px; }
+    .card p { font-size: 13px; color: #666; margin-bottom: 15px; }
+    .btn-group { display: flex; gap: 8px; }
+    .btn { background: #111; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    .btn-gold { background: #c9a227; color: #111; font-size: 15px; }
+    .cart-btn { position: fixed; bottom: 20px; right: 20px; background: #111; color: #fff; padding: 12px 20px; border-radius: 30px; font-weight: bold; border: 2px solid #c9a227; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-content { background: #fff; width: 90%; max-width: 450px; padding: 20px; border-radius: 12px; position: relative; max-height: 90vh; overflow-y: auto; }
+    .close { position: absolute; right: 15px; top: 10px; font-size: 22px; cursor: pointer; font-weight: bold; }
+    input, textarea, select { width: 100%; padding: 10px; margin: 8px 0 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    .pay-info { background: #fdf8e6; border: 1px solid #e6cb6d; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
+    .contact-sec { background: #fff; border-radius: 10px; padding: 20px; margin-top: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
+    .contact-sec h3 { margin-top: 0; color: #111; border-bottom: 2px solid #c9a227; display: inline-block; padding-bottom: 5px; }
+    .footer { background: #111; color: #fff; text-align: center; padding: 20px; margin-top: 40px; }
+    .footer a { color: #c9a227; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
 
-Included:
-Customer:
-- Product browsing
-- Cart
-- Checkout
-- Cash on Delivery
-- bKash manual payment + Transaction ID
-- Nagad manual payment + Transaction ID
-- Automatic Order ID
-- Order confirmation
+  <div class="header">
+    <div id="logoHolder"></div>
+    <h1 id="storeTitle">Accessories <span>Adda Hub</span></h1>
+    <p id="storeTag">Style starts with the right accessories.</p>
+  </div>
 
-Admin:
-- Separate /admin.html
-- Product image upload/change
-- Add/edit/delete products
-- Edit price/name/description/availability
-- Store settings
-- bKash/Nagad number settings
-- View all orders
-- Change order status
-- Verify/reject bKash/Nagad payment
+  <div class="container">
+    <h2>Our Products</h2>
+    <div id="productList" class="grid"></div>
 
-SETUP:
-1. Install Node.js 20+.
-2. Open terminal in this folder.
-3. Run: npm install
-4. Set ADMIN_PASSWORD to your own strong password.
-5. Run: npm start
-6. Customer: http://localhost:3000
-7. Admin: http://localhost:3000/admin.html
+    <!-- Contact Info Section -->
+    <div class="contact-sec">
+      <h3>Contact Us / যোগাযোগ</h3>
+      <p style="margin: 8px 0; font-weight: bold; font-size: 16px;" id="cOwnerName">Accessories Adda Hub</p>
+      <p style="margin: 6px 0;">📞 <b>Phone / WhatsApp:</b> <span id="displayPhone">01870697907</span></p>
+      <p style="margin: 6px 0;">📍 <b>ঠিকানা:</b> <span id="displayAddress">আগানগর কদমতলী, কেরানীগঞ্জ, ঢাকা</span></p>
+    </div>
+  </div>
 
-PAYMENT NOTE:
-This version supports Cash on Delivery and manual bKash/Nagad payment with Transaction ID.
-For automatic gateway payment/verification, you must have the relevant merchant account
-and credentials/API access. Those credentials must never be placed in frontend HTML.
-The backend is structured so a gateway integration can be added safely later.
+  <button class="cart-btn" onclick="openCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
 
-SECURITY:
-Before public launch use HTTPS, a persistent production database, secure session/auth,
-rate limiting, backups, and production image storage. Change the default admin password.
+  <!-- Cart & Checkout Modal -->
+  <div id="cartModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeCart()">&times;</span>
+      <h3>Your Cart</h3>
+      <div id="cartItems"></div>
+      <hr style="margin: 15px 0;">
+      
+      <h4>কাস্টমার তথ্য</h4>
+      <input id="cName" type="text" placeholder="আপনার নাম *" required>
+      <input id="cPhone" type="tel" placeholder="মোবাইল নম্বর *" required>
+      <textarea id="cAddress" placeholder="সম্পূর্ণ ঠিকানা (বাসা/রোড নম্বর, এলাকা, জেলা) *" rows="2" required></textarea>
+
+      <h4>পেমেন্ট মেথড নির্বাচন করুন</h4>
+      <select id="payMethod" onchange="togglePaymentInfo()">
+        <option value="Cash on Delivery">Cash on Delivery (ক্যাশ অন ডেলিভারি)</option>
+        <option value="bKash">bKash (বিকাশ)</option>
+        <option value="Nagad">Nagad (নগদ)</option>
+      </select>
+
+      <div id="payDetails" class="pay-info" style="display:none;">
+        <p style="margin: 0 0 5px; font-weight: bold;" id="payNumText">আমাদের বিকাশ নম্বর: </p>
+        <p style="margin: 0 0 8px; font-size: 12px; color: #555;">টাকা পাঠানোর পর নিচে আপনার বিকাশ/নগদ নম্বর এবং TrxID লিখুন:</p>
+        <input id="paySenderPhone" type="tel" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন">
+        <input id="payTrxId" type="text" placeholder="TrxID (ট্রানজেকশন আইডি)">
+      </div>
+      
+      <p id="delMsg" style="font-size: 12px; color: #666; margin-top: 10px;"></p>
+      
+      <button class="btn btn-gold" onclick="submitOrder()" id="confirmBtn">অর্ডার কনফার্ম করুন</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>© Accessories Adda Hub</p>
+    <div style="margin-top: 10px;">
+      <a href="/admin.html">🔒 Admin Panel Login</a>
+    </div>
+  </div>
+
+  <script>
+    let cart = [];
+    let settings = {};
+
+    async function init() {
+      try {
+        let sRes = await fetch('/api/settings');
+        settings = await sRes.json();
+        
+        if(settings.logo) {
+          document.getElementById('logoHolder').innerHTML = `<img src="${settings.logo}" class="logo" alt="Logo">`;
+        }
+        if(settings.storeName) document.getElementById('storeTitle').innerHTML = settings.storeName;
+        if(settings.tagline) document.getElementById('storeTag').innerText = settings.tagline;
+        if(settings.deliveryText) document.getElementById('delMsg').innerText = settings.deliveryText;
+        if(settings.whatsapp) document.getElementById('displayPhone').innerText = settings.whatsapp;
+
+        let pRes = await fetch('/api/products');
+        let products = await pRes.json();
+        renderProducts(products);
+      } catch(e) {
+        console.error("Error loading shop data", e);
+      }
+    }
+
+    function renderProducts(products) {
+      let html = '';
+      if(!products || products.length === 0) {
+        html = '<p>কোনো প্রোডাক্ট পাওয়া যায়নি।</p>';
+      } else {
+        products.forEach(p => {
+          let safeName = p.name.replace(/'/g, "\\'");
+          html += `
+            <div class="card">
+              <img src="${p.image || 'https://via.placeholder.com/300?text=No+Image'}" alt="${p.name}">
+              <h3>${p.name}</h3>
+              <div class="price">৳${p.price}</div>
+              <p>${p.description || ''}</p>
+              <div class="btn-group">
+                <button class="btn" onclick="addToCart('${p.id}', '${safeName}', ${p.price})">Add to Cart</button>
+                <button class="btn btn-gold" onclick="buyNow('${p.id}', '${safeName}', ${p.price})">সরাসরি অর্ডার</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('productList').innerHTML = html;
+    }
+
+    function addToCart(id, name, price) {
+      cart.push({ id, name, price });
+      document.getElementById('cartCount').innerText = cart.length;
+      alert(name + " কার্টে যোগ করা হয়েছে!");
+    }
+
+    function buyNow(id, name, price) {
+      cart.push({ id, name, price });
+      document.getElementById('cartCount').innerText = cart.length;
+      openCart();
+    }
+
+    function openCart() {
+      let cartHtml = '';
+      let total = 0;
+      if(cart.length === 0) {
+        cartHtml = '<p>কার্ট খালি আছে।</p>';
+      } else {
+        cart.forEach((item, i) => {
+          total += Number(item.price);
+          cartHtml += `<div style="display:flex; justify-content:space-between; align-items:center; margin: 8px 0;">
+            <span>${item.name} - ৳${item.price}</span>
+            <button onclick="removeFromCart(${i})" style="background:#ff4d4d; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">X</button>
+          </div>`;
+        });
+        cartHtml += `<p style="font-weight:bold; margin-top:10px; font-size:16px;">মোট: ৳${total}</p>`;
+      }
+      document.getElementById('cartItems').innerHTML = cartHtml;
+      document.getElementById('cartModal').style.display = 'flex';
+      togglePaymentInfo();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      document.getElementById('cartCount').innerText = cart.length;
+      openCart();
+    }
+
+    function closeCart() {
+      document.getElementById('cartModal').style.display = 'none';
+    }
+
+    function togglePaymentInfo() {
+      let method = document.getElementById('payMethod').value;
+      let payDetails = document.getElementById('payDetails');
+      let payNumText = document.getElementById('payNumText');
+
+      if(method === 'bKash') {
+        payDetails.style.display = 'block';
+        let bkNum = settings.bkash || '01870697907';
+        payNumText.innerHTML = `বিকাশ নম্বর: <span style="color:#e2136e; font-size:16px;">${bkNum}</span> (Personal/Send Money)`;
+      } else if(method === 'Nagad') {
+        payDetails.style.display = 'block';
+        let ngNum = settings.nagad || '01870697907';
+        payNumText.innerHTML = `নগদ নম্বর: <span style="color:#f7931e; font-size:16px;">${ngNum}</span> (Personal/Send Money)`;
+      } else {
+        payDetails.style.display = 'none';
+      }
+    }
+
+    async function submitOrder() {
+      let name = document.getElementById('cName').value.trim();
+      let phone = document.getElementById('cPhone').value.trim();
+      let address = document.getElementById('cAddress').value.trim();
+      let payMethod = document.getElementById('payMethod').value;
+      let senderPhone = document.getElementById('paySenderPhone').value.trim();
+      let trxId = document.getElementById('payTrxId').value.trim();
+
+      if(!name || !phone || !address) {
+        alert('অনুগ্রহ করে নাম, মোবাইল নম্বর এবং ঠিকানা সঠিকভাবে লিখুন!');
+        return;
+      }
+
+      if(cart.length === 0) {
+        alert('আপনার কার্ট খালি! প্রথমে প্রোডাক্ট কার্টে যোগ করুন।');
+        return;
+      }
+
+      let btn = document.getElementById('confirmBtn');
+      btn.disabled = true;
+      btn.innerText = 'অর্ডার প্রসেসিং হচ্ছে...';
+
+      try {
+        let res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer: { 
+              name, 
+              phone, 
+              address, 
+              payMethod, 
+              senderPhone: (payMethod !== 'Cash on Delivery') ? senderPhone : '', 
+              trxId: (payMethod !== 'Cash on Delivery') ? trxId : '' 
+            },
+            items: cart
+          })
+        });
+
+        if(res.ok) {
+          alert('🎉 ধন্যবাদ! আপনার অর্ডারটি সফলভাবে জমা হয়েছে।');
+          cart = [];
+          document.getElementById('cartCount').innerText = '0';
+          document.getElementById('cName').value = '';
+          document.getElementById('cPhone').value = '';
+          document.getElementById('cAddress').value = '';
+          document.getElementById('paySenderPhone').value = '';
+          document.getElementById('payTrxId').value = '';
+          closeCart();
+        } else {
+          alert('অর্ডার সাবমিট করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।');
+        }
+      } catch(e) {
+        alert('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'অর্ডার কনফার্ম করুন';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
