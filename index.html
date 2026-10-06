@@ -57,7 +57,8 @@
     <div class="contact-sec">
       <h3>Contact Us / যোগাযোগ</h3>
       <p style="margin: 8px 0; font-weight: bold; font-size: 16px;" id="cOwnerName">Accessories Adda Hub</p>
-      <p style="margin: 6px 0;">📞 <b>Phone / WhatsApp:</b> <span id="displayPhone">01870697907</span></p>
+      <p style="margin: 6px 0;">📞 <b>ফোন / হোয়াটসঅ্যাপ (১):</b> <span id="displayPhone">01870697907</span></p>
+      <p style="margin: 6px 0; display: none;" id="displayPhone2Holder">📞 <b>জরুরী / ব্যাকআপ নম্বর (২):</b> <span id="displayPhone2"></span></p>
       <p style="margin: 6px 0;">📍 <b>ঠিকানা:</b> <span id="displayAddress">আগানগর কদমতলী, কেরানীগঞ্জ, ঢাকা</span></p>
     </div>
   </div>
@@ -121,6 +122,15 @@
         if(settings.tagline) document.getElementById('storeTag').innerText = settings.tagline;
         if(settings.deliveryText) document.getElementById('delMsg').innerText = settings.deliveryText;
         if(settings.whatsapp) document.getElementById('displayPhone').innerText = settings.whatsapp;
+
+        if(settings.phone2) {
+          document.getElementById('displayPhone2Holder').style.display = 'block';
+          document.getElementById('displayPhone2').innerText = settings.phone2;
+        } else {
+          document.getElementById('displayPhone2Holder').style.display = 'none';
+        }
+
+        if(settings.address) document.getElementById('displayAddress').innerText = settings.address;
 
         let pRes = await fetch('/api/products');
         allProducts = await pRes.json();
@@ -288,7 +298,6 @@
 
           alert('🎉 ধন্যবাদ! আপনার অর্ডারটি সফলভাবে জমা হয়েছে। হোয়াটসঅ্যাপে মেসেজ পাঠাতে ওকে (OK) চাপুন।');
 
-          // কার্ট খালি করা
           cart = [];
           document.getElementById('cartCount').innerText = '0';
           document.getElementById('cName').value = '';
@@ -298,7 +307,6 @@
           document.getElementById('payTrxId').value = '';
           closeCart();
 
-          // হোয়াটসঅ্যাপে নিয়ে যাওয়া
           window.open(waUrl, '_blank');
         } else {
           alert('অর্ডার সাবমিট করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।');
