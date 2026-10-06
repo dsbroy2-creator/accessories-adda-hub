@@ -127,7 +127,23 @@ app.put("/api/admin/settings", auth, (q, r) => {
   write(d);
   r.json(d.settings);
 });
+app.put("/api/admin/settings", auth, (q, r) => {
+  let d = read();
+  d.settings = { ...d.settings, ...q.body };
+  write(d);
+  r.json(d.settings);
+});
 
+// ডিলিট রুটটি app.use এর উপরে থাকবে
+app.delete("/api/admin/orders/:id", auth, (q, r) => {
+  let d = read();
+  d.orders = d.orders.filter((x) => x.id !== q.params.id);
+  write(d);
+  r.json({ success: true });
+});
+
+// app.use লাইনটি থাকবে ডিলিট রুটের নিচে
 app.use((q, r) => r.sendFile(path.join(__dirname, "index.html")));
 
 app.listen(PORT, () => console.log("Shop running on " + PORT));
+
