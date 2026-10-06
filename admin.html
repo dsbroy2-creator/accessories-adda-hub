@@ -1,151 +1,463 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Panel - Accessories Adda Hub</title>
   <style>
-    body{font-family:Arial;margin:0;background:#f5f5f5}
-    .top{background:#111;color:#fff;padding:16px}
-    .wrap{max-width:1150px;margin:auto;padding:18px}
-    .panel,.card{background:#fff;padding:16px;border-radius:12px;margin:12px 0}
-    input,textarea,select{width:100%;padding:10px;margin:6px 0 12px;box-sizing:border-box}
-    button{padding:10px 15px;border:0;border-radius:7px;background:#111;color:#fff;cursor:pointer}
-    .gold{background:#c9a227;color:#111}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}
-    .thumb{width:100%;height:160px;object-fit:contain;background:#eee;border-radius:8px}
-    .order{border-left:5px solid #c9a227}
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #333; }
+    .header { background: #111; color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #c9a227; }
+    .header h1 { margin: 0; font-size: 20px; color: #c9a227; }
+    .btn-logout { background: #ff4d4d; color: #fff; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+    .card { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { margin-top: 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: #111; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+    input[type="text"], input[type="number"], input[type="password"], textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+    .btn { background: #111; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    .btn-gold { background: #c9a227; color: #111; }
+    .btn-danger { background: #ff4d4d; color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; margin-right: 4px; margin-bottom: 4px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+    th, td { border: 1px solid #e0e0e0; padding: 10px; text-align: left; }
+    th { background: #f8f9fa; font-weight: bold; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+    .badge-Pending { background: #fff3cd; color: #856404; }
+    .badge-Accepted { background: #d1ecf1; color: #0c5460; }
+    .badge-Shipped { background: #d4edda; color: #155724; }
+    .badge-Delivered { background: #28a745; color: #fff; }
+    .badge-Cancelled { background: #f8d7da; color: #721c24; }
+    #loginSec { max-width: 400px; margin: 80px auto; }
+    .logo-preview { max-height: 60px; margin-top: 8px; display: block; border-radius: 4px; border: 1px solid #ddd; }
   </style>
 </head>
 <body>
-  <div class="top"><h2>Accessories Adda Hub — Admin Panel</h2></div>
-  <div class="wrap">
-    <div id="login" class="panel">
-      <h3>Admin Login</h3>
-      <input id="pass" type="password" placeholder="Admin password">
-      <button onclick="login()">Login</button>
+
+  <!-- Login Section -->
+  <div id="loginSec" class="card">
+    <h2>🔒 Admin Login</h2>
+    <div class="form-group">
+      <label>পাসওয়ার্ড দিন</label>
+      <input type="password" id="adminPassInput" placeholder="Enter Admin Password">
     </div>
-    <div id="app" style="display:none">
-      <div class="panel"><button onclick="logout()">Logout</button></div>
-      <div class="panel">
-        <h3>Store & Payment Settings</h3>
-        <input id="tag" placeholder="Tagline">
-        <textarea id="del" placeholder="Delivery text"></textarea>
-        <input id="wa" placeholder="WhatsApp">
-        <input id="bk" placeholder="bKash Merchant/Payment Number">
-        <input id="ng" placeholder="Nagad Merchant/Payment Number">
-        <button class="gold" onclick="saveSettings()">Save Settings</button>
+    <button class="btn btn-gold" style="width:100%" onclick="login()">লগইন করুন</button>
+  </div>
+
+  <!-- Dashboard Section -->
+  <div id="dashboardSec" style="display:none;">
+    <div class="header">
+      <h1>⚙️ Accessories Adda Hub - Admin Panel</h1>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+      <!-- Settings Card -->
+      <div class="card">
+        <h2>🛠️ Store & Payment Settings (দোকান ও যোগাযোগ সেটিংস)</h2>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>দোকানের নাম (Store Name)</label>
+            <input type="text" id="setStoreName">
+          </div>
+          <div class="form-group">
+            <label>ট্যাগলাইন (Tagline)</label>
+            <input type="text" id="setTagline">
+          </div>
+          <div class="form-group">
+            <label>📞 ফোন / হোয়াটসঅ্যাপ নম্বর ১ (Primary)</label>
+            <input type="text" id="setWhatsapp" placeholder="01870697907">
+          </div>
+          <div class="form-group">
+            <label>📞 জরুরী / ব্যাকআপ নম্বর ২ (Backup Phone)</label>
+            <input type="text" id="setPhone2" placeholder="01XXXXXXXXX">
+          </div>
+          <div class="form-group">
+            <label>📍 দোকানের ঠিকানা (Address)</label>
+            <input type="text" id="setAddress">
+          </div>
+          <div class="form-group">
+            <label>bKash নম্বর (Send Money)</label>
+            <input type="text" id="setBkash">
+          </div>
+          <div class="form-group">
+            <label>Nagad নম্বর (Send Money)</label>
+            <input type="text" id="setNagad">
+          </div>
+          <div class="form-group">
+            <label>লোগো আপলোড (Store Logo Image)</label>
+            <input type="file" id="setLogoFile" accept="image/*">
+            <div id="currentLogoHolder"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ডেলিভারি মেসেজ / নোটিশ (Delivery Note)</label>
+          <textarea id="setDeliveryText" rows="2"></textarea>
+        </div>
+        <button class="btn btn-gold" onclick="saveSettings()">💾 Save Settings (সেটিংস সেভ করুন)</button>
       </div>
-      <div class="panel">
-        <h3>New Product</h3>
-        <input id="nn" placeholder="Product name">
-        <input id="np" type="number" placeholder="Price">
-        <textarea id="nd" placeholder="Description"></textarea>
-        <input id="ni" type="file" accept="image/*">
-        <button class="gold" onclick="addProduct()">Add Product</button>
+
+      <!-- Add Product Card -->
+      <div class="card">
+        <h2>➕ Add New Product (নতুন প্রোডাক্ট যোগ করুন)</h2>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>প্রোডাক্টের নাম *</label>
+            <input type="text" id="pName" placeholder="e.g. Smart Watch T800">
+          </div>
+          <div class="form-group">
+            <label>দাম (৳) *</label>
+            <input type="number" id="pPrice" placeholder="e.g. 1200">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>বিবরণ (Description)</label>
+          <input type="text" id="pDesc" placeholder="e.g. High quality Bluetooth watch">
+        </div>
+        <div class="form-group">
+          <label>প্রোডাক্টের ছবি আপলোড করুন</label>
+          <input type="file" id="pImageFile" accept="image/*">
+        </div>
+        <button class="btn" onclick="addProduct()">পণ্য যোগ করুন</button>
       </div>
-      <h3>Products</h3>
-      <div id="plist" class="grid"></div>
-      <h3>Orders</h3>
-      <div id="olist"></div>
+
+      <!-- Product List Card -->
+      <div class="card">
+        <h2>📦 Product List (বর্তমান পণ্যসমূহ)</h2>
+        <div id="productListTable"></div>
+      </div>
+
+      <!-- Orders Card -->
+      <div class="card">
+        <h2>🛒 Orders Management (কাস্টমারদের অর্ডারসমূহ)</h2>
+        <div id="ordersTableHolder"></div>
+      </div>
     </div>
   </div>
+
   <script>
-    let token = localStorage.adminToken || "";
-    function esc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+    let token = localStorage.getItem('adminToken') || '';
+    let currentLogoUrl = '';
 
-    async function api(u, o = {}) {
-      o.headers = { ...(o.headers || {}), "x-admin-token": token };
-      let r = await fetch(u, o);
-      if (r.status === 401) { logout(); throw Error("Unauthorized"); }
-      return r;
-    }
-
-    async function login() {
-      let r = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pass.value })
-      });
-      let d = await r.json();
-      if (!r.ok) return alert("Wrong password");
-      token = d.token;
-      localStorage.adminToken = token;
-      show();
-    }
-
-    function logout() {
-      localStorage.removeItem("adminToken");
-      location.reload();
-    }
-
-    async function show() {
-      document.getElementById("login").style.display = "none";
-      document.getElementById("app").style.display = "block";
-      let s = await fetch("/api/settings").then(r => r.json());
-      tag.value = s.tagline || "";
-      del.value = s.deliveryText || "";
-      wa.value = s.whatsapp || "";
-      bk.value = s.bkash || "";
-      ng.value = s.nagad || "";
-      loadP();
-      loadO();
-    }
-
-    async function saveSettings() {
-      await api("/api/admin/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tagline: tag.value, deliveryText: del.value, whatsapp: wa.value, bkash: bk.value, nagad: ng.value })
-      });
-      alert("Settings saved");
-    }
-
-    async function upload(f) {
-      let x = new FormData();
-      x.append("image", f);
-      return (await (await api("/api/admin/upload", { method: "POST", body: x })).json()).url;
-    }
-
-    async function loadP() {
-      let a = await api("/api/admin/products").then(r => r.json());
-      plist.innerHTML = a.map(p => `<div class="card"><img class="thumb" src="${p.image || ''}"><input id="n${p.id}" value="${esc(p.name)}"><input id="p${p.id}" type="number" value="${p.price}"><textarea id="d${p.id}">${esc(p.description)}</textarea><input id="i${p.id}" type="file" accept="image/*"><label><input id="s${p.id}" type="checkbox" ${p.stock ? "checked" : ""}> Available</label><button class="gold" onclick="saveP('${p.id}')">Save</button> <button onclick="delP('${p.id}')">Delete</button></div>`).join("");
-    }
-
-    async function saveP(id) {
-      let f = document.getElementById("i" + id).files[0];
-      let body = {
-        name: document.getElementById("n" + id).value,
-        price: document.getElementById("p" + id).value,
-        description: document.getElementById("d" + id).value,
-        stock: document.getElementById("s" + id).checked
-      };
-      if (f) body.image = await upload(f);
-      await api("/api/admin/products/" + id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      loadP();
-    }
-
-    async function addProduct() {
-      let u = ni.files[0] ? await upload(ni.files[0]) : "";
-      await api("/api/admin/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: nn.value, price: np.value, description: nd.value, image: u }) });
-      nn.value = np.value = nd.value = "";
-      ni.value = "";
-      loadP();
-    }
-
-    async function delP(id) {
-      if (confirm("Delete product?")) {
-        await api("/api/admin/products/" + id, { method: "DELETE" });
-        loadP();
+    function checkAuth() {
+      if(token) {
+        document.getElementById('loginSec').style.display = 'none';
+        document.getElementById('dashboardSec').style.display = 'block';
+        loadSettings();
+        loadProducts();
+        loadOrders();
+      } else {
+        document.getElementById('loginSec').style.display = 'block';
+        document.getElementById('dashboardSec').style.display = 'none';
       }
     }
 
-    async function loadO() {
-      let a = await api("/api/admin/orders").then(r => r.json());
-      olist.innerHTML = a.length ? a.map(o => `<div class="card order"><b>${o.id}</b><p><b>${esc(o.customer ? o.customer.name : '')}</b> | ${esc(o.customer ? o.customer.phone : '')}<br>${esc(o.customer ? o.customer.address : '')}</p></div>`).join("") : "<p>No orders yet</p>";
+    async function login() {
+      let pass = document.getElementById('adminPassInput').value.trim();
+      try {
+        let res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pass })
+        });
+        let data = await res.json();
+        if(res.ok && data.token) {
+          token = data.token;
+          localStorage.setItem('adminToken', token);
+          checkAuth();
+        } else {
+          alert('ভুল পাসওয়ার্ড!');
+        }
+      } catch(e) {
+        alert('লগইন করতে সমস্যা হয়েছে!');
+      }
     }
 
-    if (token) show();
+    function logout() {
+      localStorage.removeItem('adminToken');
+      token = '';
+      checkAuth();
+    }
+
+    async function loadSettings() {
+      try {
+        let res = await fetch('/api/settings');
+        let s = await res.json();
+        document.getElementById('setStoreName').value = s.storeName || '';
+        document.getElementById('setTagline').value = s.tagline || '';
+        document.getElementById('setWhatsapp').value = s.whatsapp || '';
+        document.getElementById('setPhone2').value = s.phone2 || '';
+        document.getElementById('setAddress').value = s.address || '';
+        document.getElementById('setBkash').value = s.bkash || '';
+        document.getElementById('setNagad').value = s.nagad || '';
+        document.getElementById('setDeliveryText').value = s.deliveryText || '';
+        currentLogoUrl = s.logo || '';
+        if(currentLogoUrl) {
+          document.getElementById('currentLogoHolder').innerHTML = `<img src="${currentLogoUrl}" class="logo-preview">`;
+        }
+      } catch(e) {
+        console.error("Error loading settings", e);
+      }
+    }
+
+    async function saveSettings() {
+      let storeName = document.getElementById('setStoreName').value.trim();
+      let tagline = document.getElementById('setTagline').value.trim();
+      let whatsapp = document.getElementById('setWhatsapp').value.trim();
+      let phone2 = document.getElementById('setPhone2').value.trim();
+      let address = document.getElementById('setAddress').value.trim();
+      let bkash = document.getElementById('setBkash').value.trim();
+      let nagad = document.getElementById('setNagad').value.trim();
+      let deliveryText = document.getElementById('setDeliveryText').value.trim();
+
+      let logoFile = document.getElementById('setLogoFile').files[0];
+      let logoUrl = currentLogoUrl;
+
+      if(logoFile) {
+        let formData = new FormData();
+        formData.append('image', logoFile);
+        try {
+          let uRes = await fetch('/api/admin/upload', {
+            method: 'POST',
+            headers: { 'x-admin-token': token },
+            body: formData
+          });
+          let uData = await uRes.json();
+          if(uData.url) logoUrl = uData.url;
+        } catch(e) {
+          alert('লোগো আপলোড করতে সমস্যা হয়েছে!');
+        }
+      }
+
+      try {
+        let res = await fetch('/api/admin/settings', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': token
+          },
+          body: JSON.stringify({
+            storeName, tagline, whatsapp, phone2, address, bkash, nagad, deliveryText, logo: logoUrl
+          })
+        });
+
+        if(res.ok) {
+          alert('✅ সেটিংস সফলভাবে সেভ হয়েছে!');
+          loadSettings();
+        } else {
+          alert('সেটিংস সেভ করতে ব্যর্থ হয়েছে!');
+        }
+      } catch(e) {
+        alert('নেটওয়ার্ক সমস্যা!');
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        let res = await fetch('/api/admin/products', {
+          headers: { 'x-admin-token': token }
+        });
+        let products = await res.json();
+        
+        if(!products || products.length === 0) {
+          document.getElementById('productListTable').innerHTML = '<p>কোনো পণ্য পাওয়া যায়নি।</p>';
+          return;
+        }
+
+        let html = `<table>
+          <thead>
+            <tr>
+              <th>ছবি</th>
+              <th>নাম</th>
+              <th>দাম</th>
+              <th>বিবরণ</th>
+              <th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        products.forEach(p => {
+          html += `<tr>
+            <td><img src="${p.image || 'https://via.placeholder.com/50'}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;"></td>
+            <td><b>${p.name}</b></td>
+            <td>৳${p.price}</td>
+            <td>${p.description || '-'}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Delete</button>
+            </td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('productListTable').innerHTML = html;
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    async function addProduct() {
+      let name = document.getElementById('pName').value.trim();
+      let price = document.getElementById('pPrice').value.trim();
+      let description = document.getElementById('pDesc').value.trim();
+      let imgFile = document.getElementById('pImageFile').files[0];
+
+      if(!name || !price) {
+        alert('পণ্যের নাম এবং দাম অবশ্যই দিতে হবে!');
+        return;
+      }
+
+      let imageUrl = '';
+      if(imgFile) {
+        let formData = new FormData();
+        formData.append('image', imgFile);
+        try {
+          let uRes = await fetch('/api/admin/upload', {
+            method: 'POST',
+            headers: { 'x-admin-token': token },
+            body: formData
+          });
+          let uData = await uRes.json();
+          if(uData.url) imageUrl = uData.url;
+        } catch(e) {
+          console.error(e);
+        }
+      }
+
+      try {
+        let res = await fetch('/api/admin/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': token
+          },
+          body: JSON.stringify({ name, price: Number(price), description, image: imageUrl })
+        });
+
+        if(res.ok) {
+          alert('🎉 প্রোডাক্ট যোগ করা হয়েছে!');
+          document.getElementById('pName').value = '';
+          document.getElementById('pPrice').value = '';
+          document.getElementById('pDesc').value = '';
+          document.getElementById('pImageFile').value = '';
+          loadProducts();
+        }
+      } catch(e) {
+        alert('প্রোডাক্ট যোগ করতে সমস্যা হয়েছে!');
+      }
+    }
+
+    async function deleteProduct(id) {
+      if(!confirm('আপনি কি সত্যিই এই প্রোডাক্টটি মুছে ফেলতে চান?')) return;
+      try {
+        let res = await fetch('/api/admin/products/' + id, {
+          method: 'DELETE',
+          headers: { 'x-admin-token': token }
+        });
+        if(res.ok) {
+          loadProducts();
+        }
+      } catch(e) {
+        alert('মুছে ফেলতে সমস্যা হয়েছে!');
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        let res = await fetch('/api/admin/orders', {
+          headers: { 'x-admin-token': token }
+        });
+        let orders = await res.json();
+
+        if(!orders || orders.length === 0) {
+          document.getElementById('ordersTableHolder').innerHTML = '<p>কোনো অর্ডার পাওয়া যায়নি।</p>';
+          return;
+        }
+
+        let html = `<table>
+          <thead>
+            <tr>
+              <th>তারিখ</th>
+              <th>কাস্টমার তথ্য</th>
+              <th>প্রোডাক্টসমূহ</th>
+              <th>পেমেন্ট মেথড</th>
+              <th>অবস্থা (Status)</th>
+              <th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        orders.reverse().forEach(o => {
+          let c = o.customer || {};
+          let itemsList = (o.items || []).map(i => `${i.name} (৳${i.price})`).join('<br>');
+          let status = o.status || 'Pending';
+          let dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('bn-BD') : '-';
+
+          html += `<tr>
+            <td style="font-size:12px;">${dateStr}</td>
+            <td>
+              <b>${c.name || 'N/A'}</b><br>
+              📞 ${c.phone || 'N/A'}<br>
+              📍 ${c.address || 'N/A'}
+            </td>
+            <td>${itemsList}</td>
+            <td>
+              <b>${c.payMethod || 'COD'}</b><br>
+              ${c.senderPhone ? 'প্রেরক: ' + c.senderPhone + '<br>' : ''}
+              ${c.trxId ? 'TrxID: ' + c.trxId : ''}
+            </td>
+            <td><span class="badge badge-${status}">${status}</span></td>
+            <td>
+              <button class="btn btn-gold btn-sm" onclick="updateOrderStatus('${o.id}', 'Accepted')">Accept</button>
+              <button class="btn btn-sm" style="background:#17a2b8; color:#fff;" onclick="updateOrderStatus('${o.id}', 'Shipped')">Ship</button>
+              <button class="btn btn-sm" style="background:#28a745; color:#fff;" onclick="updateOrderStatus('${o.id}', 'Delivered')">Deliver</button>
+              <button class="btn btn-sm" style="background:#ffc107; color:#111;" onclick="updateOrderStatus('${o.id}', 'Cancelled')">Cancel</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')">Delete</button>
+            </td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('ordersTableHolder').innerHTML = html;
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    async function updateOrderStatus(id, status) {
+      try {
+        let res = await fetch('/api/admin/orders/' + id, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': token
+          },
+          body: JSON.stringify({ status })
+        });
+        if(res.ok) {
+          loadOrders();
+        }
+      } catch(e) {
+        alert('স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে!');
+      }
+    }
+
+    async function deleteOrder(id) {
+      if(!confirm('আপনি কি সত্যিই এই অর্ডারটি মুছে ফেলতে চান?')) return;
+      try {
+        let res = await fetch('/api/admin/orders/' + id, {
+          method: 'DELETE',
+          headers: { 'x-admin-token': token }
+        });
+        if(res.ok) {
+          loadOrders();
+        }
+      } catch(e) {
+        alert('অর্ডার ডিলিট করতে সমস্যা হয়েছে!');
+      }
+    }
+
+    checkAuth();
   </script>
 </body>
 </html>
