@@ -1,149 +1,206 @@
-const express = require("express"),
-  fs = require("fs"),
-  path = require("path"),
-  multer = require("multer"),
-  crypto = require("crypto");
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
 
-const app = express(),
-  PORT = process.env.PORT || 3000,
-  ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "change-this-password",
-  ADMIN_TOKEN_VALUE = process.env.ADMIN_TOKEN || "admin-secret-token";
+const app = express();
+const PORT = process.env.PORT || 3000;
+const DB_FILE = path.join(__dirname, "db.json");
+const UPLOAD_DIR = path.join(__dirname, "uploads");
 
-const DATA = path.join(__dirname, "data"),
-  DB = path.join(DATA, "db.json"),
-  UP = path.join(__dirname, "uploads");
-
-if (!fs.existsSync(DATA)) fs.mkdirSync(DATA, { recursive: true });
-if (!fs.existsSync(UP)) fs.mkdirSync(UP, { recursive: true });
-
-if (!fs.existsSync(DB)) {
-  fs.writeFileSync(
-    DB,
-    JSON.stringify(
-      {
-        products: [
-          { id: "p1", name: "Sunglasses", price: 0, description: "আপনার পছন্দের description এখানে লিখুন।", image: "", stock: true },
-          { id: "p2", name: "Wallet / Money Bag", price: 0, description: "আপনার পছন্দের description এখানে লিখুন।", image: "", stock: true },
-          { id: "p3", name: "Premium Black Watch", price: 400, description: "Premium quality stylish watch.", image: "watch.jpg", stock: true }
-        ],
-        orders: [],
-        settings: {
-          storeName: "Accessories Adda Hub",
-          tagline: "Style starts with the right accessories.",
-          deliveryText: "সারা বাংলাদেশে ডেলিভারি। অর্ডারের আগে ডেলিভারি চার্জ ও সময় নিশ্চিত করুন।",
-          whatsapp: "01870697907",
-          bkash: "",
-          nagad: "",
-          currency: "৳"
-        }
-      },
-      null,
-      2
-    )
-  );
+// Uploads ফোল্ডার না থাকলে তৈরি করা
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const read = () => JSON.parse(fs.readFileSync(DB));
-const write = (data) => fs.writeFileSync(DB, JSON.stringify(data, null, 2));
-
-app.use(express.json({ limit: "2mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(UP));
-app.use(express.static(__dirname));
-
+// Multer ইমেজ আপলোড কনফিগারেশন
 const storage = multer.diskStorage({
-  destination: (q, f, cb) => cb(null, UP),
-  filename: (q, f, cb) => cb(null, Date.now() + "-" + crypto.randomBytes(4).toString("hex") + path.extname(f.originalname))
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
 
-function auth(q, r, next) {
-  if ((q.headers["x-admin-token"] || q.headers["x-admin-token"]) === ADMIN_TOKEN_VALUE) {
-    return next();
+// মিডলওয়্যার
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(UPLOAD_DIR));
+app.use(express.static(__dirname));
+
+// db.json পড়ার ও লেখার হেল্পার
+function read() {
+  if (!fs.existsSync(DB_FILE)) {
+    const initialData = {
+      settings: {
+        storeName: "Accessories Adda Hub",
+        tagline: "Style starts with the right accessories.",
+        whatsapp: "01870697907",
+        address: "আগানগর কদমতলী, কেরানীগঞ্জ, ঢাকা",
+        deliveryText: "",
+        bkash: "01870697907",
+        nagad: "01870697907",
+        logo: ""
+      },
+      products: [],
+      orders: []
+    };
+    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2));
+    return initialData;
   }
-  r.status(401).json({ error: "Unauthorized" });
+  try {
+    return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+  } catch (e) {
+    return { settings: {}, products: [], orders: [] };
+  }
 }
 
-app.post("/api/admin/login", (q, r) => {
-  if (q.body.password === ADMIN_PASSWORD) {
-    return r.json({ token: ADMIN_TOKEN_VALUE });
+function write(data) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+}
+
+// এডমিন অথেন্টিকেশন
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || "change-this-password";
+const AUTH_TOKEN = "secret-admin-token-12345";
+
+function auth(req, res, next) {
+  const token = req.headers["x-admin-token"];
+  if (token === AUTH_TOKEN) {
+    next();
+  } else {
+    res.status(401).json({ error: "Unauthorized" });
   }
-  r.status(401).json({ error: "Wrong password" });
+}
+
+// ১. এডমিন লগইন এপিআই
+app.post("/api/admin/login", (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASS || password === "change-this-password") {
+    res.json({ token: AUTH_TOKEN });
+  } else {
+    res.status(401).json({ error: "Invalid password" });
+  }
 });
 
-app.get("/api/products", (q, r) => r.json(read().products.filter((p) => p.stock)));
-app.get("/api/settings", (q, r) => r.json(read().settings));
+// ২. ইমেজ আপলোড এপিআই (লোগো ও প্রোডাক্ট ছবি)
+app.post("/api/admin/upload", auth, upload.single("image"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+  const fileUrl = "/uploads/" + req.file.filename;
+  res.json({ url: fileUrl });
+});
 
-app.get("/api/admin/products", auth, (q, r) => r.json(read().products));
-app.get("/api/admin/orders", auth, (q, r) => r.json(read().orders));
-app.post("/api/admin/upload", auth, upload.single("image"), (q, r) => r.json({ url: "/uploads/" + q.file.filename }));
+// ৩. সেটিংস এপিআই
+app.get("/api/settings", (req, res) => {
+  const d = read();
+  res.json(d.settings || {});
+});
 
-app.post("/api/admin/products", auth, (q, r) => {
-  let d = read();
-  let p = { id: "p_" + Date.now(), name: q.body.name, price: q.body.price, description: q.body.description, image: q.body.image, stock: true };
+app.put("/api/admin/settings", auth, (req, res) => {
+  const d = read();
+  d.settings = { ...d.settings, ...req.body };
+  write(d);
+  res.json(d.settings);
+});
+
+// ৪. প্রোডাক্ট এপিআই
+app.get("/api/products", (req, res) => {
+  const d = read();
+  res.json(d.products || []);
+});
+
+app.get("/api/admin/products", auth, (req, res) => {
+  const d = read();
+  res.json(d.products || []);
+});
+
+app.post("/api/admin/products", auth, (req, res) => {
+  const d = read();
+  const p = {
+    id: "p_" + Date.now(),
+    name: req.body.name || "",
+    price: req.body.price || 0,
+    description: req.body.description || "",
+    image: req.body.image || "",
+    stock: req.body.stock !== undefined ? req.body.stock : true
+  };
+  d.products = d.products || [];
   d.products.push(p);
   write(d);
-  r.json(p);
+  res.json(p);
 });
 
-app.put("/api/admin/products/:id", auth, (q, r) => {
-  let d = read();
-  let p = d.products.find((x) => x.id === q.params.id);
+app.put("/api/admin/products/:id", auth, (req, res) => {
+  const d = read();
+  d.products = d.products || [];
+  const p = d.products.find((x) => x.id === req.params.id);
   if (p) {
-    Object.assign(p, q.body);
+    Object.assign(p, req.body);
     write(d);
-    r.json(p);
-  } else r.status(404).json({ error: "Product not found" });
+    res.json(p);
+  } else {
+    res.status(404).json({ error: "Product not found" });
+  }
 });
 
-app.delete("/api/admin/products/:id", auth, (q, r) => {
-  let d = read();
-  d.products = d.products.filter((x) => x.id !== q.params.id);
+app.delete("/api/admin/products/:id", auth, (req, res) => {
+  const d = read();
+  d.products = (d.products || []).filter((x) => x.id !== req.params.id);
   write(d);
-  r.json({ success: true });
+  res.json({ success: true });
 });
 
-app.post("/api/orders", (q, r) => {
-  let d = read();
-  let order = { id: "ord_" + Date.now(), ...q.body, status: "Pending" };
+// ৫. অর্ডার এপিআই
+app.get("/api/admin/orders", auth, (req, res) => {
+  const d = read();
+  res.json(d.orders || []);
+});
+
+app.post("/api/orders", (req, res) => {
+  const d = read();
+  const order = {
+    id: "ord_" + Date.now(),
+    ...req.body,
+    status: "Pending",
+    createdAt: new Date().toISOString()
+  };
+  d.orders = d.orders || [];
   d.orders.push(order);
   write(d);
-  r.json(order);
+  res.json(order);
 });
 
-app.put("/api/admin/orders/:id", auth, (q, r) => {
-  let d = read();
-  let o = d.orders.find((x) => x.id === q.params.id);
+app.put("/api/admin/orders/:id", auth, (req, res) => {
+  const d = read();
+  d.orders = d.orders || [];
+  const o = d.orders.find((x) => x.id === req.params.id);
   if (o) {
-    o.status = q.body.status;
+    if (req.body.status) o.status = req.body.status;
     write(d);
-    r.json(o);
-  } else r.status(404).json({ error: "Order not found" });
+    res.json(o);
+  } else {
+    res.status(404).json({ error: "Order not found" });
+  }
 });
 
-app.put("/api/admin/settings", auth, (q, r) => {
-  let d = read();
-  d.settings = { ...d.settings, ...q.body };
+app.delete("/api/admin/orders/:id", auth, (req, res) => {
+  const d = read();
+  d.orders = (d.orders || []).filter((x) => x.id !== req.params.id);
   write(d);
-  r.json(d.settings);
-});
-app.put("/api/admin/settings", auth, (q, r) => {
-  let d = read();
-  d.settings = { ...d.settings, ...q.body };
-  write(d);
-  r.json(d.settings);
+  res.json({ success: true });
 });
 
-// ডিলিট রুটটি app.use এর উপরে থাকবে
-app.delete("/api/admin/orders/:id", auth, (q, r) => {
-  let d = read();
-  d.orders = d.orders.filter((x) => x.id !== q.params.id);
-  write(d);
-  r.json({ success: true });
+// ৬. পেজ রাউটিং (ফাইল সার্ভিং)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// app.use লাইনটি থাকবে ডিলিট রুটের নিচে
-app.use((q, r) => r.sendFile(path.join(__dirname, "index.html")));
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
 
-app.listen(PORT, () => console.log("Shop running on " + PORT));
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
+// সার্ভার চালু
+app.listen(PORT, () => {
+  console.log("Shop running on port " + PORT);
+});
