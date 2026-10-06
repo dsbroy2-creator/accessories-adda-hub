@@ -12,7 +12,9 @@
     .header h1 span { color: #c9a227; }
     .header p { margin: 6px 0 0; color: #ccc; font-size: 14px; }
     .container { max-width: 1000px; margin: auto; padding: 15px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+    .search-box { margin: 15px 0 20px; }
+    .search-box input { width: 100%; padding: 12px 15px; font-size: 15px; border: 2px solid #c9a227; border-radius: 8px; box-sizing: border-box; outline: none; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 10px; }
     .card { background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
     .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; background: #eee; }
     .card h3 { margin: 12px 0 6px; font-size: 18px; }
@@ -43,6 +45,12 @@
 
   <div class="container">
     <h2>Our Products</h2>
+    
+    <!-- Search Box -->
+    <div class="search-box">
+      <input type="text" id="searchInput" oninput="filterProducts()" placeholder="🔍 প্রোডাক্টের নাম লিখে খুঁজুন...">
+    </div>
+
     <div id="productList" class="grid"></div>
 
     <!-- Contact Info Section -->
@@ -99,6 +107,7 @@
   <script>
     let cart = [];
     let settings = {};
+    let allProducts = [];
 
     async function init() {
       try {
@@ -114,8 +123,8 @@
         if(settings.whatsapp) document.getElementById('displayPhone').innerText = settings.whatsapp;
 
         let pRes = await fetch('/api/products');
-        let products = await pRes.json();
-        renderProducts(products);
+        allProducts = await pRes.json();
+        renderProducts(allProducts);
       } catch(e) {
         console.error("Error loading shop data", e);
       }
@@ -143,6 +152,12 @@
         });
       }
       document.getElementById('productList').innerHTML = html;
+    }
+
+    function filterProducts() {
+      let query = document.getElementById('searchInput').value.toLowerCase().trim();
+      let filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
+      renderProducts(filtered);
     }
 
     function addToCart(id, name, price) {
@@ -245,7 +260,35 @@
         });
 
         if(res.ok) {
-          alert('🎉 ধন্যবাদ! আপনার অর্ডারটি সফলভাবে জমা হয়েছে।');
+          // হোয়াটসঅ্যাপ মেসেজ তৈরি করা
+          let orderText = `🛒 *নতুন অর্ডার এসেছে!*%0A%0A` +
+            `👤 *নাম:* ${encodeURIComponent(name)}%0A` +
+            `📞 *ফোন:* ${encodeURIComponent(phone)}%0A` +
+            `📍 *ঠিকানা:* ${encodeURIComponent(address)}%0A` +
+            `💳 *পেমেন্ট:* ${encodeURIComponent(payMethod)}%0A`;
+          
+          if(payMethod !== 'Cash on Delivery') {
+            if(senderPhone) orderText += `📱 *প্রেরক নম্বর:* ${encodeURIComponent(senderPhone)}%0A`;
+            if(trxId) orderText += `🆔 *TrxID:* ${encodeURIComponent(trxId)}%0A`;
+          }
+
+          orderText += `%0A📦 *প্রোডাক্টসমূহ:*%0A`;
+          let total = 0;
+          cart.forEach((item, idx) => {
+            total += Number(item.price);
+            orderText += `${idx + 1}. ${encodeURIComponent(item.name)} - ৳${item.price}%0A`;
+          });
+          orderText += `%0A💰 *সর্বমোট:* ৳${total}`;
+
+          let waPhone = settings.whatsapp || '01870697907';
+          let cleanWa = waPhone.replace(/[^0-9]/g, '');
+          if(cleanWa.startsWith('0')) cleanWa = '88' + cleanWa;
+
+          let waUrl = `https://wa.me/${cleanWa}?text=${orderText}`;
+
+          alert('🎉 ধন্যবাদ! আপনার অর্ডারটি সফলভাবে জমা হয়েছে। হোয়াটসঅ্যাপে মেসেজ পাঠাতে ওকে (OK) চাপুন।');
+
+          // কার্ট খালি করা
           cart = [];
           document.getElementById('cartCount').innerText = '0';
           document.getElementById('cName').value = '';
@@ -254,6 +297,9 @@
           document.getElementById('paySenderPhone').value = '';
           document.getElementById('payTrxId').value = '';
           closeCart();
+
+          // হোয়াটসঅ্যাপে নিয়ে যাওয়া
+          window.open(waUrl, '_blank');
         } else {
           alert('অর্ডার সাবমিট করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।');
         }
