@@ -4,9 +4,11 @@ const path = require('path');
 
 const app = express();
 
-// ৫০০ এমবি লিমিট সেটআপ (বড় ছবির জন্য)
+// ৫০০ এমবি লিমিট সেটআপ
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ limit: '500mb', extended: true }));
+
+// পাবলিক ফোল্ডার স্ট্যাটিক করা
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ডাটাবেজ কানেকশন
@@ -41,7 +43,7 @@ const OrderSchema = new mongoose.Schema({
 });
 const Order = mongoose.model('Order', OrderSchema);
 
-// এডমিন প্যানেল রাউট (public ফোল্ডারের ভেতর থেকে সঠিক পাথ)
+// এডমিন প্যানেল রাউট (public ফোল্ডারের ভেতর থেকে admin.html লোড করার সঠিক পাথ)
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
