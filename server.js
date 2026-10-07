@@ -1,152 +1,296 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const path = require('path');
-
-const app = express();
-
-// বড় ছবি এবং ডেটা আপলোড করার জন্য লিমি트 বাড়িয়ে দেওয়া হলো (যাতে কোনো এরর না আসে)
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// স্ট্যাটিক ফোল্ডার সেটআপ
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ডাটাবেজ কানেকশন (আপনার যদি নিজস্ব ইউআরএল থাকে সেটি এখানে দিতে পারেন)
-mongoose.connect('mongodb://127.0.0.1:27017/accessories_adda_hub', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => {
-    console.log('MongoDB Connected Successfully');
-}).catch(err => {
-    console.log('DB Connection Error: ', err);
-});
-
-// ১. সেটিংস স্কিমা ও মডেল
-const settingsSchema = new mongoose.Schema({
-    insideDhaka: { type: Number, default: 80 },
-    outsideDhaka: { type: Number, default: 150 }
-});
-const Settings = mongoose.model('Settings', settingsSchema);
-
-// ২. প্রোডাক্ট স্কিমা ও মডেল (৬টি পর্যন্ত ছবি রাখার ব্যবস্থা)
-const productSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    price: { type: Number, required: true },
-    oldPrice: { type: Number },
-    stockStatus: { type: String, default: 'In Stock' },
-    images: [String],
-    description: { type: String },
-    createdAt: { type: Date, default: Date.now }
-});
-const Product = mongoose.model('Product', productSchema);
-
-// ৩. অর্ডার স্কিমা ও মডেল
-const orderSchema = new mongoose.Schema({
-    productTitle: String,
-    productPrice: Number,
-    deliveryCharge: Number,
-    totalPrice: Number,
-    customerName: String,
-    phone: String,
-    address: String,
-    deliveryArea: String,
-    createdAt: { type: Date, default: Date.now }
-});
-const Order = mongoose.model('Order', orderSchema);
-
-
-// --- রাউটস (Routes) ---
-
-// এডমিন পেজ রাউট
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
-// সেটিংস গেট করা
-app.get('/settings', async (req, res) => {
-    try {
-        let settings = await Settings.findOne();
-        if (!settings) {
-            settings = await Settings.create({ insideDhaka: 80, outsideDhaka: 150 });
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessories Adda Hub - Master Admin Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-box: #1e293b;
+            --accent: #3b82f6;
+            --border-light: #475569;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
         }
-        res.json(settings);
-    } catch (err) {
-        res.status(500).json({ error: 'Server Error' });
-    }
-});
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg-primary); color: var(--text); padding: 20px; min-height: 100vh; }
+        .container { max-width: 1100px; margin: 0 auto; display: none; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border-light); padding-bottom: 15px; }
+        h1 { color: #38bdf8; font-size: 24px; }
+        .box { background: var(--bg-box); padding: 25px; border-radius: 14px; border: 1px solid var(--border-light); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
+        h2 { font-size: 18px; color: var(--warning); margin-bottom: 18px; border-bottom: 1px solid var(--border-light); padding-bottom: 10px; }
+        label { display: block; margin-top: 12px; font-size: 14px; color: #cbd5e1; font-weight: 500; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 6px 0 14px; background: #0b0f19; border: 1px solid var(--border-light); color: #fff; border-radius: 8px; outline: none; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+        .image-boxes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 12px 0 18px; }
+        .img-box-item { background: #0b0f19; border: 2px dashed var(--accent); border-radius: 10px; padding: 12px; text-align: center; transition: 0.3s; }
+        .img-box-item:hover { border-color: var(--success); }
+        .img-box-item input[type="file"] { display: none; }
+        .img-box-label { cursor: pointer; font-size: 13px; color: #38bdf8; display: block; padding: 15px 5px; font-weight: bold; }
+        .img-preview { width: 100%; height: 80px; object-fit: cover; border-radius: 6px; display: none; margin-top: 8px; border: 1px solid var(--border-light); }
+        button.btn-primary { background: var(--accent); color: #fff; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; transition: 0.2s; }
+        button.btn-primary:hover { opacity: 0.9; }
+        .btn-danger { background: var(--danger); width: auto; padding: 6px 14px; font-size: 13px; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-weight: bold; }
+        .item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; gap: 15px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
 
-// সেটিংস আপডেট করা
-app.post('/settings', async (req, res) => {
-    try {
-        const { insideDhaka, outsideDhaka } = req.body;
-        let settings = await Settings.findOne();
-        if (!settings) {
-            settings = new Settings({ insideDhaka, outsideDhaka });
-        } else {
-            settings.insideDhaka = insideDhaka;
-            settings.outsideDhaka = outsideDhaka;
+    <div class="container" id="adminContainer">
+        <div class="dashboard-header">
+            <h1>⚙️ Accessories Adda Hub - মাস্টার এডমিন প্যানেল</h1>
+        </div>
+
+        <!-- Delivery Charge Settings Box -->
+        <div class="box">
+            <h2>🚚 ডেলিভারি চার্জ কন্ট্রোল প্যানেল</h2>
+            <form id="settingsForm">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 200px;">
+                        <label>ঢাকার ভেতরে চার্জ (৳):</label>
+                        <input type="number" id="insideDhaka" required>
+                    </div>
+                    <div style="flex:1; min-width: 200px;">
+                        <label>ঢাকার বাইরে চার্জ (৳):</label>
+                        <input type="number" id="outsideDhaka" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="background: var(--success); margin-top: 10px;">ডেলিভারি চার্জ আপডেট করুন</button>
+            </form>
+        </div>
+
+        <!-- Add Product Box -->
+        <div class="box">
+            <h2>✨ নতুন পণ্য যুক্ত করুন (৬টি ডাইরেক্ট ছবি বক্স)</h2>
+            <form id="addProductForm">
+                <label>পণ্যের নাম:</label>
+                <input type="text" id="title" placeholder="যেমন: Curren Luxury Watch" required>
+
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 200px;">
+                        <label>বর্তমান মূল্য (৳):</label>
+                        <input type="number" id="price" placeholder="যেমন: 1800" required>
+                    </div>
+                    <div style="flex:1; min-width: 200px;">
+                        <label>পূর্বের দাম / ছাড় (৳):</label>
+                        <input type="number" id="oldPrice" placeholder="যেমন: 2500">
+                    </div>
+                </div>
+
+                <label>আলাদা আলাদা ৬টি বক্স থেকে ছবি সিলেক্ট করুন:</label>
+                <div class="image-boxes-grid">
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img1">📁 ছবি ১ (মূল)</label>
+                        <input type="file" id="img1" accept="image/*" onchange="previewImage(this, 'preview1')">
+                        <img id="preview1" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img2">📁 ছবি ২</label>
+                        <input type="file" id="img2" accept="image/*" onchange="previewImage(this, 'preview2')">
+                        <img id="preview2" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img3">📁 ছবি ৩</label>
+                        <input type="file" id="img3" accept="image/*" onchange="previewImage(this, 'preview3')">
+                        <img id="preview3" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img4">📁 ছবি ৪</label>
+                        <input type="file" id="img4" accept="image/*" onchange="previewImage(this, 'preview4')">
+                        <img id="preview4" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img5">📁 ছবি ৫</label>
+                        <input type="file" id="img5" accept="image/*" onchange="previewImage(this, 'preview5')">
+                        <img id="preview5" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img6">📁 ছবি ৬</label>
+                        <input type="file" id="img6" accept="image/*" onchange="previewImage(this, 'preview6')">
+                        <img id="preview6" class="img-preview">
+                    </div>
+                </div>
+
+                <label>স্ট্যাটাস:</label>
+                <select id="stockStatus">
+                    <option value="In Stock">স্টকে আছে (In Stock)</option>
+                    <option value="Stock Out">স্টক শেষ (Stock Out)</option>
+                </select>
+
+                <label>বিস্তারিত বিবরণী:</label>
+                <textarea id="description" rows="3" placeholder="পণ্যের বিবরণ, মেটেরিয়াল ও গ্যারান্টি লিখুন..."></textarea>
+
+                <button type="submit" class="btn-primary">সরাসরি সার্ভারে পণ্য আপলোড করুন</button>
+            </form>
+        </div>
+
+        <!-- Products List -->
+        <div class="box">
+            <h2>📦 সকল পণ্যের তালিকা</h2>
+            <div id="productList">লোড হচ্ছে...</div>
+        </div>
+
+        <!-- Orders Management -->
+        <div class="box">
+            <h2>🛍️ গ্রাহকদের অর্ডারসমূহ</h2>
+            <div id="orderList">লোড হচ্ছে...</div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            let pass = prompt("এডমিন পাসওয়ার্ড দিন:");
+            if (pass === "Mahir98") {
+                document.getElementById('adminContainer').style.display = 'block';
+                loadAdminData();
+            } else {
+                alert("ভুল পাসওয়ার্ড!");
+                document.body.innerHTML = "<h2 style='color:red; text-align:center; margin-top:100px;'>অ্যাক্সেস ডিনাইড (Access Denied)</h2>";
+            }
+        };
+
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
         }
-        await settings.save();
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Server Error' });
-    }
-});
 
-// সকল প্রোডাক্ট গেট করা
-app.get('/products', async (req, res) => {
-    try {
-        const products = await Product.find().sort({ createdAt: -1 });
-        res.json(products);
-    } catch (err) {
-        res.status(500).json({ error: 'Server Error' });
-    }
-});
+        async function loadAdminData() {
+            try {
+                const sRes = await fetch('/settings');
+                const settings = await sRes.json();
+                document.getElementById('insideDhaka').value = settings.insideDhaka || 80;
+                document.getElementById('outsideDhaka').value = settings.outsideDhaka || 150;
+            } catch (err) {}
 
-// নতুন প্রোডাক্ট আপলোড (ছবিসহ)
-app.post('/products', async (req, res) => {
-    try {
-        const { title, price, oldPrice, stockStatus, images, description } = req.body;
-        
-        const newProduct = new Product({
-            title,
-            price,
-            oldPrice,
-            stockStatus,
-            images, // এখানে ৬টি ছবির বেস৬৪ অ্যারে সেভ হবে
-            description
+            try {
+                const pRes = await fetch('/products');
+                const products = await pRes.json();
+                document.getElementById('productList').innerHTML = products.map(p => `
+                    <div class="item">
+                        <div>
+                            <strong>${p.title}</strong><br>
+                            <span style="color: #38bdf8;">৳${p.price}</span> | স্ট্যাটাস: ${p.stockStatus || 'In Stock'} | (${(p.images||[]).length}টি ছবি)
+                        </div>
+                        <button class="btn-danger" onclick="deleteProduct('${p._id}')">ডিলিট</button>
+                    </div>
+                `).join('') || '<p style="color: #94a3b8;">কোনো পণ্য নেই।</p>';
+            } catch (err) {
+                document.getElementById('productList').innerHTML = '<p style="color: #ef4444;">লোড করতে সমস্যা হয়েছে।</p>';
+            }
+
+            try {
+                const oRes = await fetch('/orders');
+                const orders = await oRes.json();
+                document.getElementById('orderList').innerHTML = orders.map(o => `
+                    <div style="border-bottom: 1px solid #475569; padding: 12px 0;">
+                        <p><strong>পণ্য:</strong> <span style="color: #38bdf8;">${o.productTitle}</span></p>
+                        <p><strong>গ্রাহক:</strong> ${o.customerName} | 📞 ${o.phone}</p>
+                        <p><strong>ঠিকানা:</strong> ${o.address} (${o.deliveryArea || 'N/A'})</p>
+                        <p style="color: #f59e0b; font-weight: bold; margin-top: 4px;">
+                            মূল্য: ৳${o.productPrice} + ডেলিভারি: ৳${o.deliveryCharge || 0} = মোট: ৳${o.totalPrice || o.productPrice}
+                        </p>
+                    </div>
+                `).join('') || '<p style="color: #94a3b8;">কোনো অর্ডার আসেনি।</p>';
+            } catch (err) {
+                document.getElementById('orderList').innerHTML = '<p style="color: #ef4444;">অর্ডার লোড করতে সমস্যা হয়েছে।</p>';
+            }
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const insideDhaka = Number(document.getElementById('insideDhaka').value);
+            const outsideDhaka = Number(document.getElementById('outsideDhaka').value);
+
+            const res = await fetch('/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ insideDhaka, outsideDhaka })
+            });
+
+            if (res.ok) {
+                alert('ডেলিভারি চার্জ সফলভাবে আপডেট হয়েছে!');
+            } else {
+                alert('আপডেট করতে সমস্যা হয়েছে।');
+            }
         });
 
-        await newProduct.save();
-        res.json({ success: true, message: 'Product added successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to upload product' });
-    }
-});
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-// প্রোডাক্ট ডিলিট করা
-app.delete('/products/:id', async (req, res) => {
-    try {
-        await Product.findByIdAndDelete(req.params.id);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: 'Server Error' });
-    }
-});
+            const convertBase64 = (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(file);
+                });
+            };
 
-// অর্ডার লিস্ট গেট করা
-app.get('/orders', async (req, res) => {
-    try {
-        const orders = await Order.find().sort({ createdAt: -1 });
-        res.json(orders);
-    } catch (err) {
-        res.status(500).json({ error: 'Server Error' });
-    }
-});
+            try {
+                const base64Images = [];
+                const imageInputs = ['img1', 'img2', 'img3', 'img4', 'img5', 'img6'];
+                
+                for (let inputId of imageInputs) {
+                    const fileInput = document.getElementById(inputId);
+                    if (fileInput.files && fileInput.files[0]) {
+                        const base64 = await convertBase64(fileInput.files[0]);
+                        base64Images.push(base64);
+                    }
+                }
 
-// সার্ভার স্টার্ট
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+                if (base64Images.length === 0) {
+                    alert('কমপক্ষে একটি ছবি দেওয়া বাধ্যতামূলক!');
+                    return;
+                }
+
+                const productData = {
+                    title: document.getElementById('title').value,
+                    price: Number(document.getElementById('price').value),
+                    oldPrice: document.getElementById('oldPrice').value ? Number(document.getElementById('oldPrice').value) : null,
+                    stockStatus: document.getElementById('stockStatus').value,
+                    images: base64Images,
+                    description: document.getElementById('description').value
+                };
+
+                const res = await fetch('/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+
+                if (res.ok) {
+                    alert('পণ্য সফলভাবে ডাটাবেজে যুক্ত হয়েছে!');
+                    document.getElementById('addProductForm').reset();
+                    imageInputs.forEach((id, index) => {
+                        document.getElementById(`preview${index + 1}`).style.display = 'none';
+                    });
+                    loadAdminData();
+                } else {
+                    alert('আপলোড করতে সমস্যা হয়েছে।');
+                }
+            } catch (err) {
+                alert('ছবি আপলোড করতে ত্রুটি ঘটেছে।');
+            }
+        });
+
+        async function deleteProduct(id) {
+            if (confirm('পণ্যটি মুছে ফেলতে চান?')) {
+                await fetch(`/products/${id}`, { method: 'DELETE' });
+                loadAdminData();
+            }
+        }
+    </script>
+</body>
+</html>
+        
