@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Master Admin Dashboard - Accessories Adda Hub</title>
+    <title>Master Admin Dashboard - Accessories Adda Hub</title>
     <style>
         :root {
             --bg-primary: #090d16;
@@ -20,180 +20,204 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: var(--bg-primary); color: var(--text); padding: 20px; min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1100px; margin: 0 auto; }
         
-        /* Header & Stats */
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border-light); padding-bottom: 15px; }
-        h1 { color: #38bdf8; font-size: 24px; display: flex; align-items: center; gap: 10px; }
-        .logout-btn { background: var(--danger); padding: 10px 18px; border-radius: 8px; color: #fff; border: none; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
-        .logout-btn:hover { opacity: 0.85; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border-light); padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #38bdf8; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .logout-btn { background: var(--danger); padding: 10px 18px; border-radius: 8px; color: #fff; border: none; cursor: pointer; font-weight: bold; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--bg-box); padding: 22px; border-radius: 14px; border: 1px solid var(--border-light); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .stat-card h3 { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-card p { font-size: 26px; font-weight: bold; color: #38bdf8; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--bg-box); padding: 20px; border-radius: 12px; border: 1px solid var(--border-light); text-align: center; }
+        .stat-card h3 { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+        .stat-card p { font-size: 24px; font-weight: bold; color: #38bdf8; }
 
-        /* Boxes & Forms */
-        .box { background: var(--bg-box); padding: 28px; border-radius: 14px; border: 1px solid var(--border-light); margin-bottom: 25px; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); }
-        h2 { font-size: 19px; color: var(--warning); margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .box { background: var(--bg-box); padding: 25px; border-radius: 14px; border: 1px solid var(--border-light); margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        h2 { font-size: 18px; color: var(--warning); margin-bottom: 18px; border-bottom: 1px solid var(--border-light); padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
-        label { display: block; margin-top: 14px; font-size: 14px; color: #cbd5e1; font-weight: 500; }
-        input, textarea, select { width: 100%; padding: 12px 15px; margin: 6px 0 14px; background: #070b12; border: 1px solid var(--border-light); color: #fff; border-radius: 8px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
-        input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
-        input[type="file"] { padding: 10px; background: #0f172a; border: 1px dashed var(--accent); cursor: pointer; }
+        label { display: block; margin-top: 12px; font-size: 14px; color: #cbd5e1; font-weight: 500; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 6px 0 14px; background: #070b12; border: 1px solid var(--border-light); color: #fff; border-radius: 8px; outline: none; }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 
-        button.btn-primary { background: var(--accent); color: #fff; border: none; padding: 14px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; font-size: 15px; }
+        /* Separate Image Boxes Grid */
+        .image-boxes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 12px 0 18px; }
+        .img-box-item { background: #070b12; border: 2px dashed var(--accent); border-radius: 10px; padding: 12px; text-align: center; position: relative; }
+        .img-box-item input[type="file"] { display: none; }
+        .img-box-label { cursor: pointer; font-size: 13px; color: #38bdf8; display: block; padding: 15px 5px; font-weight: bold; }
+        .img-preview { width: 100%; height: 75px; object-fit: cover; border-radius: 6px; display: none; margin-top: 8px; border: 1px solid var(--border-light); }
+
+        button.btn-primary { background: var(--accent); color: #fff; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; transition: background 0.2s; }
         button.btn-primary:hover { background: var(--accent-hover); }
-        .btn-danger { background: var(--danger); width: auto; padding: 7px 16px; font-size: 13px; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-weight: bold; }
-        .btn-success { background: var(--success); width: auto; padding: 7px 16px; font-size: 13px; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-weight: bold; }
+        .btn-danger { background: var(--danger); width: auto; padding: 6px 14px; font-size: 13px; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-weight: bold; }
 
-        /* Lists & Tables */
-        .item-list { display: flex; flex-direction: column; gap: 14px; }
-        .item { display: flex; justify-content: space-between; align-items: center; background: #070b12; border: 1px solid var(--border-light); padding: 18px; border-radius: 10px; gap: 15px; }
-        .item-info { flex: 1; }
-        .item-info strong { font-size: 17px; color: #fff; }
-        .item-info span { color: var(--text-muted); font-size: 13px; line-height: 1.5; display: inline-block; margin-top: 3px; }
+        .item-list { display: flex; flex-direction: column; gap: 12px; }
+        .item { display: flex; justify-content: space-between; align-items: center; background: #070b12; border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; gap: 15px; flex-wrap: wrap; }
+        .item-info { flex: 1; min-width: 250px; }
+        .item-info strong { font-size: 16px; color: #fff; }
+        .item-info span { color: var(--text-muted); font-size: 13px; display: inline-block; margin-top: 4px; line-height: 1.4; }
 
-        /* Login Overlay */
         #loginOverlay { display: flex; position: fixed; top:0; left:0; width:100%; height:100%; background: #04070d; z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-        .login-box { background: var(--bg-box); padding: 40px; border-radius: 18px; border: 1px solid var(--border-light); width: 100%; max-width: 440px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-        
-        /* Utility bar */
-        .toolbar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .toolbar input { margin: 0; flex: 1; min-width: 220px; }
+        .login-box { background: var(--bg-box); padding: 35px; border-radius: 16px; border: 1px solid var(--border-light); width: 100%; max-width: 420px; text-align: center; }
+        .toolbar { margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- Admin Password Protection Overlay -->
+    <!-- Admin Login Overlay -->
     <div id="loginOverlay">
         <div class="login-box">
             <h2 style="color: #fff; justify-content: center; border:none; margin-bottom: 20px;">🔒 মাস্টার সিকিউরিটি গেটওয়ে</h2>
             <form id="loginForm">
-                <input type="password" id="adminPass" placeholder="পাসওয়ার্ড লিখুন (admin123)" required autocomplete="new-password">
-                <button type="submit" class="btn-primary" style="margin-top: 15px;">ড্যাশবোর্ডে প্রবেশ করুন</button>
+                <input type="password" id="adminPass" placeholder="পাসওয়ার্ড দিন (admin123)" required autocomplete="new-password">
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">প্রবেশ করুন</button>
             </form>
-            <p id="loginErr" style="color: var(--danger); margin-top: 15px; font-size: 14px; display: none;"></p>
+            <p id="loginErr" style="color: var(--danger); margin-top: 12px; font-size: 14px; display: none;"></p>
         </div>
     </div>
 
-    <!-- Main Dashboard Container -->
+    <!-- Main Dashboard -->
     <div class="container" id="adminDashboard" style="display: none;">
         
-        <!-- Header -->
         <div class="dashboard-header">
-            <h1>⚙️ Accessories Adda Hub - মাস্টার কন্ট্রোল প্যানেল</h1>
-            <button class="logout-btn" onclick="logoutAdmin()">নিরাপদ লগআউট</button>
+            <h1>⚙️ Accessories Adda Hub - মাস্টার ড্যাশবোর্ড</h1>
+            <button class="logout-btn" onclick="logoutAdmin()">লগআউট</button>
         </div>
 
-        <!-- Stats Overview Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>মোট পণ্যের সংখ্যা</h3>
+                <h3>মোট পণ্য</h3>
                 <p id="totalProductsCount">০</p>
             </div>
             <div class="stat-card">
-                <h3>মোট অর্ডারের সংখ্যা</h3>
+                <h3>মোট অর্ডার</h3>
                 <p id="totalOrdersCount">০</p>
             </div>
             <div class="stat-card">
-                <h3>সার্ভার কানেকশন</h3>
-                <p style="color: var(--success); font-size: 18px; margin-top: 8px;">🟢 ফুললি সিকিউরড</p>
+                <h3>সিস্টেম স্ট্যাটাস</h3>
+                <p style="color: var(--success); font-size: 17px; margin-top: 6px;">🟢 ফুললি সিকিউরড</p>
             </div>
         </div>
 
         <!-- Delivery Charge Settings Box -->
         <div class="box">
-            <h2>🚚 ডেলিভারি চার্জ সেটিংস ম্যানেজমেন্ট</h2>
+            <h2>🚚 ডেলিভারি চার্জ কন্ট্রোল প্যানেল</h2>
             <form id="settingsForm">
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div style="flex:1; min-width: 220px;">
-                        <label>ঢাকার ভেতরে ডেলিভারি চার্জ (৳):</label>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 200px;">
+                        <label>ঢাকার ভেতরে চার্জ (৳):</label>
                         <input type="number" id="insideDhaka" required>
                     </div>
-                    <div style="flex:1; min-width: 220px;">
-                        <label>ঢাকার বাইরে ডেলিভারি চার্জ (৳):</label>
+                    <div style="flex:1; min-width: 200px;">
+                        <label>ঢাকার বাইরে চার্জ (৳):</label>
                         <input type="number" id="outsideDhaka" required>
                     </div>
                 </div>
-                <button type="submit" class="btn-primary" style="background: var(--success); margin-top: 15px;">ডেলিভারি চার্জ আপডেট করুন</button>
+                <button type="submit" class="btn-primary" style="background: var(--success); margin-top: 10px;">চার্জ আপডেট করুন</button>
             </form>
         </div>
 
-        <!-- Add Product Box -->
+        <!-- Add Product Box with Separate Image Boxes -->
         <div class="box">
-            <h2>✨ নতুন প্রিমিয়াম ঘড়ি ও এক্সেসরিজ যুক্ত করুন</h2>
+            <h2>✨ নতুন প্রিমিয়াম ঘড়ি যুক্ত করুন (আলাদা ছবি বক্স)</h2>
             <form id="addProductForm">
-                <label>পণ্যের নাম / টাইটেল:</label>
-                <input type="text" id="title" placeholder="যেমন: Curren Chronograph Luxury Watch" required>
+                <label>পণ্যের নাম:</label>
+                <input type="text" id="title" placeholder="যেমন: Curren Luxury Watch" required>
 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <div style="flex:1; min-width: 220px;">
-                        <label>বর্তমান বিক্রয়মূল্য (৳):</label>
+                    <div style="flex:1; min-width: 200px;">
+                        <label>বর্তমান মূল্য (৳):</label>
                         <input type="number" id="price" placeholder="যেমন: 1800" required>
                     </div>
-                    <div style="flex:1; min-width: 220px;">
-                        <label>পূর্বের বা ছাড়ের আগের দাম (৳):</label>
+                    <div style="flex:1; min-width: 200px;">
+                        <label>পূর্বের দাম / ছাড় (৳):</label>
                         <input type="number" id="oldPrice" placeholder="যেমন: 2500">
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <div style="flex:1; min-width: 220px;">
-                        <label>পণ্যের ক্যাটাগরি:</label>
+                    <div style="flex:1; min-width: 200px;">
+                        <label>ক্যাটাগরি:</label>
                         <select id="productCategory">
-                            <option value="Men Watch">পুরুষদের ঘড়ি (Men Watch)</option>
-                            <option value="Women Watch">মহিলাদের ঘড়ি (Women Watch)</option>
-                            <option value="Couple Watch">কাপল ওয়াচ (Couple Watch)</option>
-                            <option value="Smart Watch">স্মার্ট ওয়াচ (Smart Watch)</option>
-                            <option value="Accessories">অন্যান্য এক্সেসরিজ</option>
+                            <option value="Men Watch">Men Watch</option>
+                            <option value="Women Watch">Women Watch</option>
+                            <option value="Couple Watch">Couple Watch</option>
+                            <option value="Smart Watch">Smart Watch</option>
                         </select>
                     </div>
-                    <div style="flex:1; min-width: 220px;">
+                    <div style="flex:1; min-width: 200px;">
                         <label>স্টক স্ট্যাটাস:</label>
                         <select id="stockStatus">
-                            <option value="In Stock">স্টকে উপলব্ধ (In Stock)</option>
+                            <option value="In Stock">স্টকে আছে (In Stock)</option>
                             <option value="Stock Out">স্টক শেষ (Stock Out)</option>
                         </select>
                     </div>
                 </div>
 
-                <label>পণ্যর ছবি সিলেক্ট করুন (গ্যালারি থেকে সর্বোচ্চ ৬টি):</label>
-                <input type="file" id="productImages" accept="image/*" multiple required>
+                <label>আলাদা আলাদা ৬টি বক্স থেকে ছবি দিন (কমপক্ষে প্রথমটি বাধ্যতামূলক):</label>
+                <div class="image-boxes-grid">
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img1">📁 ছবি ১ (মূল)</label>
+                        <input type="file" id="img1" accept="image/*" onchange="previewImage(this, 'preview1')">
+                        <img id="preview1" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img2">📁 ছবি ২</label>
+                        <input type="file" id="img2" accept="image/*" onchange="previewImage(this, 'preview2')">
+                        <img id="preview2" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img3">📁 ছবি ৩</label>
+                        <input type="file" id="img3" accept="image/*" onchange="previewImage(this, 'preview3')">
+                        <img id="preview3" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img4">📁 ছবি ৪</label>
+                        <input type="file" id="img4" accept="image/*" onchange="previewImage(this, 'preview4')">
+                        <img id="preview4" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img5">📁 ছবি ৫</label>
+                        <input type="file" id="img5" accept="image/*" onchange="previewImage(this, 'preview5')">
+                        <img id="preview5" class="img-preview">
+                    </div>
+                    <div class="img-box-item">
+                        <label class="img-box-label" for="img6">📁 ছবি ৬</label>
+                        <input type="file" id="img6" accept="image/*" onchange="previewImage(this, 'preview6')">
+                        <img id="preview6" class="img-preview">
+                    </div>
+                </div>
 
-                <label>বিস্তারিত বিবরণী (গ্যারান্টি, মেটেরিয়াল ও ফিচার):</label>
-                <textarea id="description" rows="4" placeholder="ওয়াচের বডি স্টেইনলেস স্টিল, ৩ বছরের ওয়াটারপ্রুফ গ্যারান্টি, জাপানিজ কুয়ার্জ মুভমেন্ট..."></textarea>
+                <label>বিস্তারিত বিবরণী:</label>
+                <textarea id="description" rows="3" placeholder="ওয়াচের মেটেরিয়াল, গ্যারান্টি ইত্যাদি..."></textarea>
 
-                <button type="submit" class="btn-primary" style="margin-top: 10px;">ডাটাবেজে পণ্য আপলোড করুন</button>
+                <button type="submit" class="btn-primary">সার্ভারে পণ্য আপলোড করুন</button>
             </form>
         </div>
 
-        <!-- Products List Management Box -->
+        <!-- Products List -->
         <div class="box">
-            <h2>📦 সংরক্ষিত পণ্যের তালিকা ও লাইভ সার্চ</h2>
+            <h2>📦 সকল পণ্যের তালিকা ও লাইভ সার্চ</h2>
             <div class="toolbar">
-                <input type="text" id="productSearch" placeholder="নাম দিয়ে পণ্য খুঁজুন..." onkeyup="filterProducts()">
+                <input type="text" id="productSearch" placeholder="পণ্য খুঁজুন..." onkeyup="filterProducts()">
             </div>
-            <div id="productList" class="item-list">ডাটা লোড হচ্ছে...</div>
+            <div id="productList" class="item-list">লোড হচ্ছে...</div>
         </div>
 
-        <!-- Customer Orders Management Box -->
+        <!-- Orders Management -->
         <div class="box">
-            <h2>🛍️ গ্রাহকদের সমস্ত অর্ডার ম্যানেজমেন্ট</h2>
-            <div id="orderList" class="item-list">অর্ডার লোড হচ্ছে...</div>
+            <h2>🛍️ গ্রাহকদের অর্ডারসমূহ</h2>
+            <div id="orderList" class="item-list">লোড হচ্ছে...</div>
         </div>
 
     </div>
 
     <script>
-        // Check Session Authentication
         if (sessionStorage.getItem('adminAuth') === 'true') {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('adminDashboard').style.display = 'block';
             loadAdminData();
         }
 
-        // Login Form Handler
+        // Fixed Password Login (`admin123`)
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const password = document.getElementById('adminPass').value;
@@ -214,29 +238,37 @@
             location.reload();
         }
 
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
         let allProductsCache = [];
 
-        // Load All Data (Settings, Products, Orders)
         async function loadAdminData() {
-            // Load Settings
             try {
                 const sRes = await fetch('/settings');
                 const settings = await sRes.json();
                 document.getElementById('insideDhaka').value = settings.insideDhaka || 80;
                 document.getElementById('outsideDhaka').value = settings.outsideDhaka || 150;
-            } catch (err) { console.error(err); }
+            } catch (err) {}
 
-            // Load Products
             try {
                 const pRes = await fetch('/products');
                 allProductsCache = await pRes.json();
                 document.getElementById('totalProductsCount').innerText = allProductsCache.length;
                 renderProducts(allProductsCache);
             } catch (err) {
-                document.getElementById('productList').innerHTML = '<p style="color: var(--danger);">পণ্য লোড করতে ব্যর্থ হয়েছে।</p>';
+                document.getElementById('productList').innerHTML = '<p style="color: var(--danger);">পণ্য লোড করতে সমস্যা হয়েছে।</p>';
             }
 
-            // Load Orders
             try {
                 const oRes = await fetch('/orders');
                 const orders = await oRes.json();
@@ -245,15 +277,15 @@
                 document.getElementById('orderList').innerHTML = orders.map(o => `
                     <div class="item">
                         <div class="item-info">
-                            <strong>অর্ডারকৃত পণ্য: <span style="color: #38bdf8;">${o.productTitle}</span></strong><br>
-                            <span>গ্রাহক: <b>${o.customerName}</b> | ফোন: 📞 ${o.phone}</span><br>
-                            <span>ডെলিভারি ঠিকানা: ${o.address} (${o.deliveryArea || 'N/A'})</span><br>
-                            <span style="color: var(--warning); font-weight: bold;">বিল হিসাব: ৳${o.productPrice} + ডেলিভারি: ৳${o.deliveryCharge || 0} = মোট: ৳${o.totalPrice || o.productPrice}</span>
+                            <strong>পণ্য: <span style="color: #38bdf8;">${o.productTitle}</span></strong><br>
+                            <span>গ্রাহক: <b>${o.customerName}</b> | 📞 ${o.phone}</span><br>
+                            <span>ঠিকানা: ${o.address} (${o.deliveryArea || 'N/A'})</span><br>
+                            <span style="color: var(--warning); font-weight: bold;">মূল্য: ৳${o.productPrice} + ডেলিভারি: ৳${o.deliveryCharge || 0} = মোট: ৳${o.totalPrice || o.productPrice}</span>
                         </div>
                     </div>
-                `).join('') || '<p style="color: var(--text-muted);">কোনো নতুন অর্ডার আসেনি।</p>';
+                `).join('') || '<p style="color: var(--text-muted);">কোনো অর্ডার আসেনি।</p>';
             } catch (err) {
-                document.getElementById('orderList').innerHTML = '<p style="color: var(--danger);">অর্ডার লোড করতে ব্যর্থ হয়েছে।</p>';
+                document.getElementById('orderList').innerHTML = '<p style="color: var(--danger);">অর্ডার লোড করতে সমস্যা হয়েছে।</p>';
             }
         }
 
@@ -262,11 +294,11 @@
                 <div class="item">
                     <div class="item-info">
                         <strong>${p.title}</strong><br>
-                        <span>মূল্য: <b style="color: #38bdf8;">৳${p.price}</b> ${p.oldPrice ? `<del style="color:var(--text-muted)">৳${p.oldPrice}</del>` : ''} | ক্যাটাগরি: ${p.category || 'General'} | স্ট্যাটাস: ${p.stockStatus || 'In Stock'} | ছবি: ${(p.images||[]).length}টি</span>
+                        <span>মূল্য: <b style="color: #38bdf8;">৳${p.price}</b> | ক্যাটাগরি: ${p.category || 'General'} | স্ট্যাটাস: ${p.stockStatus || 'In Stock'} | ছবি: ${(p.images||[]).length}টি</span>
                     </div>
                     <button class="btn-danger" onclick="deleteProduct('${p._id}')">ডিলিট</button>
                 </div>
-            `).join('') || '<p style="color: var(--text-muted);">কোনো পণ্য পাওয়া যায়নি।</p>';
+            `).join('') || '<p style="color: var(--text-muted);">কোনো পণ্য নেই।</p>';
         }
 
         function filterProducts() {
@@ -275,7 +307,6 @@
             renderProducts(filtered);
         }
 
-        // Settings Update
         document.getElementById('settingsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const insideDhaka = Number(document.getElementById('insideDhaka').value);
@@ -294,15 +325,9 @@
             }
         });
 
-        // Add Product Form with Base64 Multiple Image Conversion
+        // Separate Boxes Upload Handler
         document.getElementById('addProductForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const files = document.getElementById('productImages').files;
-            
-            if (files.length > 6) {
-                alert('আপনি সর্বোচ্চ ৬টি ছবি সিলেক্ট করতে পারবেন!');
-                return;
-            }
 
             const convertBase64 = (file) => {
                 return new Promise((resolve, reject) => {
@@ -316,9 +341,19 @@
             try {
                 alert('ছবি প্রসেস হচ্ছে, দয়া করে অপেক্ষা করুন...');
                 const base64Images = [];
-                for (let file of files) {
-                    const base64 = await convertBase64(file);
-                    base64Images.push(base64);
+                const imageInputs = ['img1', 'img2', 'img3', 'img4', 'img5', 'img6'];
+                
+                for (let inputId of imageInputs) {
+                    const fileInput = document.getElementById(inputId);
+                    if (fileInput.files && fileInput.files[0]) {
+                        const base64 = await convertBase64(fileInput.files[0]);
+                        base64Images.push(base64);
+                    }
+                }
+
+                if (base64Images.length === 0) {
+                    alert('কমপক্ষে একটি ছবি দেওয়া বাধ্যতামূলক!');
+                    return;
                 }
 
                 const productData = {
@@ -340,21 +375,8 @@
                 if (res.ok) {
                     alert('পণ্য সফলভাবে ডাটাবেজে যুক্ত হয়েছে!');
                     document.getElementById('addProductForm').reset();
+                    imageInputs.forEach((id, index) => {
+                        document.getElementById(`preview${index + 1}`).style.display = 'none';
+                    });
                     loadAdminData();
-                } else {
-                    alert('আপলোড করতে সমস্যা হয়েছে।');
-                }
-            } catch (err) {
-                alert('ছবি প্রসেস বা আপলোড করতে ত্রুটি ঘটেছে।');
-            }
-        });
-
-        async function deleteProduct(id) {
-            if (confirm('পণ্যটি চিরতরে মুছে ফেলতে চান?')) {
-                await fetch(`/products/${id}`, { method: 'DELETE' });
-                loadAdminData();
-            }
-        }
-    </script>
-</body>
-</html>
+                } e
