@@ -4,35 +4,31 @@ const path = require('path');
 
 const app = express();
 
-// ১. CORS সেটিং (কোনো বাড়তি cors প্যাকেজ ছাড়াই কাজ করবে)
+// CORS Handling
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
 });
 
 app.use(express.json());
-
-// ২. স্ট্যাটিক ফাইল ও রাউটিং (index.html ও admin.html সরাসরি দেখাবে)
 app.use(express.static(__dirname));
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Routing
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
-// ৩. ডাটাবেজ কানেকশন
-// Render Environment Variable থেকে MONGO_URI নিবে
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://YOUR_USER:YOUR_PASSWORD@cluster.mongodb.net/shop?retryWrites=true&w=majority";
+// Database Connection
+const MONGO_URI = process.env.MONGO_URI || "আপনার_MONGODB_URI_এখানে_দিন";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log("MongoDB Connected Successfully"))
-    .catch(err => console.error("MongoDB Connection Error:", err.message));
+    .catch(err => console.error("MongoDB Error:", err.message));
 
-// ৪. স্কিমা ও মডেল (পণ্য এবং অর্ডারের জন্য)
+// Schemas
 const productSchema = new mongoose.Schema({
     title: { type: String, required: true },
     price: { type: Number, required: true },
@@ -45,17 +41,30 @@ const orderSchema = new mongoose.Schema({
     customerName: { type: String, required: true },
     phone: { type: String, required: true },
     address: { type: String, required: true },
+    deliveryArea: String,
+    deliveryCharge: Number,
     productTitle: String,
     productPrice: Number,
+    totalPrice: Number,
     createdAt: { type: Date, default: Date.now }
+});
+
+const settingsSchema = new mongoose.Schema({
+    insideDhaka: { type: Number, default: 80 },
+    outsideDhaka: { type: Number, default: 150 }
 });
 
 const Product = mongoose.model('Product', productSchema);
 const Order = mongoose.model('Order', orderSchema);
+const Settings = mongoose.model('Settings', settingsSchema);
 
-// ৫. API এন্ট্রিপয়েন্ট
+// Admin Login API
+app.post('/api/admin/login', (req, res) => {
+    if (req.body.password === ADMIN_PASSWORD) res.json({ success: true });
+    else res.status(401).json({ success: false, message: "ভুল পাসওয়ার্ড!" });
+});
 
-// সকল প্রোডাক্ট পাওয়ার API
+// Products API
 app.get('/products', async (req, res) => {
     try {
         const products = await Product.find().sort({ createdAt: -1 });
@@ -65,11 +74,9 @@ app.get('/products', async (req, res) => {
     }
 });
 
-// নতুন প্রোডাক্ট যুক্ত করার API
 app.post('/products', async (req, res) => {
     try {
-        const { title, price, images, description } = req.body;
-        const newProduct = new Product({ title, price, images, description });
+        const newProduct = new Product(req.body);
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (err) {
@@ -77,7 +84,6 @@ app.post('/products', async (req, res) => {
     }
 });
 
-// প্রোডাক্ট ডিলিট করার API
 app.delete('/products/:id', async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);
@@ -87,7 +93,34 @@ app.delete('/products/:id', async (req, res) => {
     }
 });
 
-// সকল অর্ডার দেখার API (এডমিন প্যানেলের জন্য)
+// Settings API (Delivery Charges)
+app.get('/settings', async (req, res) => {
+    try {
+        let settings = await Settings.findOne();
+        if (!settings) {
+            settings = new Settings({ insideDhaka: 80, outsideDhaka: 150 });
+            await settings.save();
+        }
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ error: "সেটিংস লোড করতে ব্যর্থ হয়েছে" });
+    }
+});
+
+app.post('/settings', async (req, res) => {
+    try {
+        let settings = await Settings.findOne();
+        if (!settings) settings = new Settings();
+        settings.insideDhaka = req.body.insideDhaka;
+        settings.outsideDhaka = req.body.outsideDhaka;
+        await settings.save();
+        res.json({ message: "সেটিংস আপডেট হয়েছে" });
+    } catch (err) {
+        res.status(500).json({ error: "সেটিংস আপডেট করতে ব্যর্থ হয়েছে" });
+    }
+});
+
+// Orders API
 app.get('/orders', async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -97,11 +130,9 @@ app.get('/orders', async (req, res) => {
     }
 });
 
-// নতুন কাস্টমার অর্ডার সাবমিট করার API
 app.post('/orders', async (req, res) => {
     try {
-        const { customerName, phone, address, productTitle, productPrice } = req.body;
-        const newOrder = new Order({ customerName, phone, address, productTitle, productPrice });
+        const newOrder = new Order(req.body);
         await newOrder.save();
         res.status(201).json({ message: "অর্ডার সফল হয়েছে" });
     } catch (err) {
@@ -109,8 +140,5 @@ app.post('/orders', async (req, res) => {
     }
 });
 
-// ৬. সার্ভার চালু করার পোল্ট
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-    console.log(`Shop running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Shop running on port ${PORT}`));
