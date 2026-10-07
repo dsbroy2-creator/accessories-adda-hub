@@ -1,206 +1,97 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const multer = require("multer");
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, "db.json");
-const UPLOAD_DIR = path.join(__dirname, "uploads");
-
-// Uploads ফোল্ডার না থাকলে তৈরি করা
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-// Multer ইমেজ আপলোড কনফিগারেশন
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
-const upload = multer({ storage });
-
-// মিডলওয়্যার
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(UPLOAD_DIR));
+
+// স্ট্যাটিক ফাইল ও পেজ সার্ভ করা
 app.use(express.static(__dirname));
 
-// db.json পড়ার ও লেখার হেল্পার
-function read() {
-  if (!fs.existsSync(DB_FILE)) {
-    const initialData = {
-      settings: {
-        storeName: "Accessories Adda Hub",
-        tagline: "Style starts with the right accessories.",
-        whatsapp: "01870697907",
-        address: "আগানগর কদমতলী, কেরানীগঞ্জ, ঢাকা",
-        deliveryText: "",
-        bkash: "01870697907",
-        nagad: "01870697907",
-        logo: ""
-      },
-      products: [],
-      orders: []
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2));
-    return initialData;
-  }
-  try {
-    return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
-  } catch (e) {
-    return { settings: {}, products: [], orders: [] };
-  }
-}
-
-function write(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-}
-
-// এডমিন অথেন্টিকেশন
-const ADMIN_PASS = process.env.ADMIN_PASSWORD || "change-this-password";
-const AUTH_TOKEN = "secret-admin-token-12345";
-
-function auth(req, res, next) {
-  const token = req.headers["x-admin-token"];
-  if (token === AUTH_TOKEN) {
-    next();
-  } else {
-    res.status(401).json({ error: "Unauthorized" });
-  }
-}
-
-// ১. এডমিন লগইন এপিআই
-app.post("/api/admin/login", (req, res) => {
-  const { password } = req.body;
-  if (password === ADMIN_PASS || password === "change-this-password") {
-    res.json({ token: AUTH_TOKEN });
-  } else {
-    res.status(401).json({ error: "Invalid password" });
-  }
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ২. ইমেজ আপলোড এপিআই (লোগো ও প্রোডাক্ট ছবি)
-app.post("/api/admin/upload", auth, upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-  const fileUrl = "/uploads/" + req.file.filename;
-  res.json({ url: fileUrl });
+// ডাটাবেজ কানেকশন
+const MONGO_URI = process.env.MONGO_URI || "YOUR_MONGODB_URI_HERE";
+mongoose.connect(MONGO_URI)
+    .then(() => console.log("MongoDB Connected Successfully"))
+    .catch(err => console.error("MongoDB Connection Error:", err));
+
+// স্কিমা ও মডেল
+const productSchema = new mongoose.Schema({
+    title: String,
+    price: Number,
+    images: [String],
+    description: String,
+    createdAt: { type: Date, default: Date.now }
 });
 
-// ৩. সেটিংস এপিআই
-app.get("/api/settings", (req, res) => {
-  const d = read();
-  res.json(d.settings || {});
+const orderSchema = new mongoose.Schema({
+    customerName: String,
+    phone: String,
+    address: String,
+    productTitle: String,
+    productPrice: Number,
+    createdAt: { type: Date, default: Date.now }
 });
 
-app.put("/api/admin/settings", auth, (req, res) => {
-  const d = read();
-  d.settings = { ...d.settings, ...req.body };
-  write(d);
-  res.json(d.settings);
+const Product = mongoose.model('Product', productSchema);
+const Order = mongoose.model('Order', orderSchema);
+
+// API এন্ট্রিপয়েন্ট
+app.get('/products', async (req, res) => {
+    try {
+        const products = await Product.find().sort({ createdAt: -1 });
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: "পণ্য লোড করতে ব্যর্থ হয়েছে" });
+    }
 });
 
-// ৪. প্রোডাক্ট এপিআই
-app.get("/api/products", (req, res) => {
-  const d = read();
-  res.json(d.products || []);
+app.post('/products', async (req, res) => {
+    try {
+        const { title, price, images, description } = req.body;
+        const newProduct = new Product({ title, price, images, description });
+        await newProduct.save();
+        res.status(201).json(newProduct);
+    } catch (err) {
+        res.status(500).json({ error: "পণ্য যুক্ত করতে ব্যর্থ হয়েছে" });
+    }
 });
 
-app.get("/api/admin/products", auth, (req, res) => {
-  const d = read();
-  res.json(d.products || []);
+app.delete('/products/:id', async (req, res) => {
+    try {
+        await Product.findByIdAndDelete(req.params.id);
+        res.json({ message: "পণ্য ডিলিট হয়েছে" });
+    } catch (err) {
+        res.status(500).json({ error: "ডিলিট করতে ব্যর্থ হয়েছে" });
+    }
 });
 
-app.post("/api/admin/products", auth, (req, res) => {
-  const d = read();
-  const p = {
-    id: "p_" + Date.now(),
-    name: req.body.name || "",
-    price: req.body.price || 0,
-    description: req.body.description || "",
-    image: req.body.image || "",
-    stock: req.body.stock !== undefined ? req.body.stock : true
-  };
-  d.products = d.products || [];
-  d.products.push(p);
-  write(d);
-  res.json(p);
+app.get('/orders', async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (err) {
+        res.status(500).json({ error: "অর্ডার লোড করতে ব্যর্থ হয়েছে" });
+    }
 });
 
-app.put("/api/admin/products/:id", auth, (req, res) => {
-  const d = read();
-  d.products = d.products || [];
-  const p = d.products.find((x) => x.id === req.params.id);
-  if (p) {
-    Object.assign(p, req.body);
-    write(d);
-    res.json(p);
-  } else {
-    res.status(404).json({ error: "Product not found" });
-  }
+app.post('/orders', async (req, res) => {
+    try {
+        const { customerName, phone, address, productTitle, productPrice } = req.body;
+        const newOrder = new Order({ customerName, phone, address, productTitle, productPrice });
+        await newOrder.save();
+        res.status(201).json({ message: "অর্ডার সফল হয়েছে" });
+    } catch (err) {
+        res.status(500).json({ error: "অর্ডার করতে ব্যর্থ হয়েছে" });
+    }
 });
 
-app.delete("/api/admin/products/:id", auth, (req, res) => {
-  const d = read();
-  d.products = (d.products || []).filter((x) => x.id !== req.params.id);
-  write(d);
-  res.json({ success: true });
-});
-
-// ৫. অর্ডার এপিআই
-app.get("/api/admin/orders", auth, (req, res) => {
-  const d = read();
-  res.json(d.orders || []);
-});
-
-app.post("/api/orders", (req, res) => {
-  const d = read();
-  const order = {
-    id: "ord_" + Date.now(),
-    ...req.body,
-    status: "Pending",
-    createdAt: new Date().toISOString()
-  };
-  d.orders = d.orders || [];
-  d.orders.push(order);
-  write(d);
-  res.json(order);
-});
-
-app.put("/api/admin/orders/:id", auth, (req, res) => {
-  const d = read();
-  d.orders = d.orders || [];
-  const o = d.orders.find((x) => x.id === req.params.id);
-  if (o) {
-    if (req.body.status) o.status = req.body.status;
-    write(d);
-    res.json(o);
-  } else {
-    res.status(404).json({ error: "Order not found" });
-  }
-});
-
-app.delete("/api/admin/orders/:id", auth, (req, res) => {
-  const d = read();
-  d.orders = (d.orders || []).filter((x) => x.id !== req.params.id);
-  write(d);
-  res.json({ success: true });
-});
-
-// ৬. পেজ রাউটিং (ফাইল সার্ভিং)
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
-});
-
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// সার্ভার চালু
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log("Shop running on port " + PORT);
+    console.log(`Shop running on port ${PORT}`);
 });
