@@ -3,43 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin Dashboard - Accessories Adda Hub</title>
+    <title>Accessories Adda Hub - Master Admin Dashboard</title>
     <style>
         :root {
-            --bg-primary: #090d16;
-            --bg-box: #131d31;
-            --accent: #2563eb;
-            --border-light: #334155;
+            --bg-primary: #0f172a;
+            --bg-box: #1e293b;
+            --accent: #3b82f6;
+            --border-light: #475569;
             --text: #f8fafc;
             --text-muted: #94a3b8;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: var(--bg-primary); color: var(--text); padding: 20px; min-height: 100vh; }
         .container { max-width: 1100px; margin: 0 auto; display: none; }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border-light); padding-bottom: 15px; }
-        h1 { color: #38bdf8; font-size: 22px; }
-        .box { background: var(--bg-box); padding: 25px; border-radius: 14px; border: 1px solid var(--border-light); margin-bottom: 25px; }
+        h1 { color: #38bdf8; font-size: 24px; }
+        .box { background: var(--bg-box); padding: 25px; border-radius: 14px; border: 1px solid var(--border-light); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
         h2 { font-size: 18px; color: var(--warning); margin-bottom: 18px; border-bottom: 1px solid var(--border-light); padding-bottom: 10px; }
-        label { display: block; margin-top: 12px; font-size: 14px; color: #cbd5e1; }
-        input, textarea, select { width: 100%; padding: 12px; margin: 6px 0 14px; background: #070b12; border: 1px solid var(--border-light); color: #fff; border-radius: 8px; outline: none; }
-        .image-boxes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 12px 0 18px; }
-        .img-box-item { background: #070b12; border: 2px dashed var(--accent); border-radius: 10px; padding: 12px; text-align: center; }
+        label { display: block; margin-top: 12px; font-size: 14px; color: #cbd5e1; font-weight: 500; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 6px 0 14px; background: #0b0f19; border: 1px solid var(--border-light); color: #fff; border-radius: 8px; outline: none; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+        .image-boxes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 12px 0 18px; }
+        .img-box-item { background: #0b0f19; border: 2px dashed var(--accent); border-radius: 10px; padding: 12px; text-align: center; transition: 0.3s; }
+        .img-box-item:hover { border-color: var(--success); }
         .img-box-item input[type="file"] { display: none; }
         .img-box-label { cursor: pointer; font-size: 13px; color: #38bdf8; display: block; padding: 15px 5px; font-weight: bold; }
-        .img-preview { width: 100%; height: 75px; object-fit: cover; border-radius: 6px; display: none; margin-top: 8px; }
-        button.btn-primary { background: var(--accent); color: #fff; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; }
+        .img-preview { width: 100%; height: 80px; object-fit: cover; border-radius: 6px; display: none; margin-top: 8px; border: 1px solid var(--border-light); }
+        button.btn-primary { background: var(--accent); color: #fff; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; transition: 0.2s; }
+        button.btn-primary:hover { opacity: 0.9; }
         .btn-danger { background: var(--danger); width: auto; padding: 6px 14px; font-size: 13px; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-weight: bold; }
-        .item { display: flex; justify-content: space-between; align-items: center; background: #070b12; border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; gap: 15px; margin-bottom: 10px; }
+        .item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; border: 1px solid var(--border-light); padding: 16px; border-radius: 10px; gap: 15px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div class="container" id="adminContainer">
         <div class="dashboard-header">
-            <h1>⚙️ Accessories Adda Hub - মাস্টার ড্যাশবোর্ড</h1>
+            <h1>⚙️ Accessories Adda Hub - মাস্টার এডমিন প্যানেল</h1>
         </div>
 
         <!-- Delivery Charge Settings Box -->
@@ -56,13 +59,13 @@
                         <input type="number" id="outsideDhaka" required>
                     </div>
                 </div>
-                <button type="submit" class="btn-primary" style="background: var(--success); margin-top: 10px;">চার্জ আপডেট করুন</button>
+                <button type="submit" class="btn-primary" style="background: var(--success); margin-top: 10px;">ডেলিভারি চার্জ আপডেট করুন</button>
             </form>
         </div>
 
         <!-- Add Product Box -->
         <div class="box">
-            <h2>✨ নতুন প্রিমিয়াম ঘড়ি যুক্ত করুন (আলাদা ছবি বক্স)</h2>
+            <h2>✨ নতুন পণ্য যুক্ত করুন (৬টি ডাইরেক্ট ছবি বক্স)</h2>
             <form id="addProductForm">
                 <label>পণ্যের নাম:</label>
                 <input type="text" id="title" placeholder="যেমন: Curren Luxury Watch" required>
@@ -78,7 +81,7 @@
                     </div>
                 </div>
 
-                <label>আলাদা আলাদা ৬টি বক্স থেকে ছবি দিন:</label>
+                <label>আলাদা আলাদা ৬টি বক্স থেকে ছবি সিলেক্ট করুন:</label>
                 <div class="image-boxes-grid">
                     <div class="img-box-item">
                         <label class="img-box-label" for="img1">📁 ছবি ১ (মূল)</label>
@@ -119,9 +122,9 @@
                 </select>
 
                 <label>বিস্তারিত বিবরণী:</label>
-                <textarea id="description" rows="3" placeholder="ওয়াচের মেটেরিয়াল, গ্যারান্টি ইত্যাদি..."></textarea>
+                <textarea id="description" rows="3" placeholder="পণ্যের বিবরণ, মেটেরিয়াল ও গ্যারান্টি লিখুন..."></textarea>
 
-                <button type="submit" class="btn-primary">সার্ভারে পণ্য আপলোড করুন</button>
+                <button type="submit" class="btn-primary">সরাসরি সার্ভারে পণ্য আপলোড করুন</button>
             </form>
         </div>
 
@@ -140,7 +143,7 @@
 
     <script>
         window.onload = function() {
-            let pass = prompt("দয়া করে এডমিন পাসওয়ার্ড দিন:");
+            let pass = prompt("এডমিন পাসওয়ার্ড দিন:");
             if (pass === "Mahir98") {
                 document.getElementById('adminContainer').style.display = 'block';
                 loadAdminData();
@@ -190,7 +193,7 @@
                 const oRes = await fetch('/orders');
                 const orders = await oRes.json();
                 document.getElementById('orderList').innerHTML = orders.map(o => `
-                    <div style="border-bottom: 1px solid #334155; padding: 12px 0;">
+                    <div style="border-bottom: 1px solid #475569; padding: 12px 0;">
                         <p><strong>পণ্য:</strong> <span style="color: #38bdf8;">${o.productTitle}</span></p>
                         <p><strong>গ্রাহক:</strong> ${o.customerName} | 📞 ${o.phone}</p>
                         <p><strong>ঠিকানা:</strong> ${o.address} (${o.deliveryArea || 'N/A'})</p>
@@ -235,7 +238,6 @@
             };
 
             try {
-                alert('ছবি প্রসেস হচ্ছে, দয়া করে অপেক্ষা করুন...');
                 const base64Images = [];
                 const imageInputs = ['img1', 'img2', 'img3', 'img4', 'img5', 'img6'];
                 
@@ -268,7 +270,7 @@
                 });
 
                 if (res.ok) {
-                    alert('পণ্য সফলভাবে যুক্ত হয়েছে!');
+                    alert('পণ্য সফলভাবে ডাটাবেজে যুক্ত হয়েছে!');
                     document.getElementById('addProductForm').reset();
                     imageInputs.forEach((id, index) => {
                         document.getElementById(`preview${index + 1}`).style.display = 'none';
