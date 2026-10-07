@@ -1,139 +1,238 @@
+
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Accessories Adda Hub</title>
+    <title>Admin Dashboard - Accessories Adda Hub</title>
     <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-box: #1e293b;
+            --accent: #2563eb;
+            --border: #334155;
+            --text: #f8fafc;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: #0f172a; color: #fff; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1, h2 { color: #38bdf8; margin-bottom: 15px; }
-        .box { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #334155; }
-        input, textarea { width: 100%; padding: 10px; margin: 6px 0 12px 0; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; }
-        button { background: #2563eb; color: #fff; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        body { background: var(--bg-primary); color: var(--text); padding: 20px; min-height: 100vh; }
+        .container { max-width: 850px; margin: 0 auto; }
+        
+        h1 { color: #38bdf8; margin-bottom: 20px; font-size: 24px; text-align: center; }
+        .box { background: var(--bg-box); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; }
+        h2 { font-size: 18px; color: #f59e0b; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+        input, textarea { width: 100%; padding: 10px; margin: 6px 0 14px; background: #0f172a; border: 1px solid var(--border); color: #fff; border-radius: 6px; outline: none; }
+        input:focus, textarea:focus { border-color: #38bdf8; }
+
+        button { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
         .btn-danger { background: #ef4444; width: auto; padding: 6px 12px; font-size: 12px; }
-        .item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding: 10px 0; }
+        
+        .item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding: 12px 0; }
+        
+        #loginOverlay { display: flex; position: fixed; top:0; left:0; width:100%; height:100%; background: #0b0f19; z-index: 999; justify-content: center; align-items: center; padding: 20px; }
+        .login-box { background: var(--bg-box); padding: 30px; border-radius: 12px; border: 1px solid var(--border); width: 100%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>⚙️ এডমিন ড্যাশবোর্ড</h1>
-
-    <!-- Add Product Form -->
-    <div class="box">
-        <h2>নতুন পণ্য যোগ করুন (সর্বোচ্চ ৬টি ছবি)</h2>
-        <form id="addProductForm">
-            <label>পণ্যের নাম:</label>
-            <input type="text" id="title" required>
-
-            <label>মূল্য (টাকায়):</label>
-            <input type="number" id="price" required>
-
-            <label>ছবি ১ এর লিংক (মেইন ছবি):</label>
-            <input type="url" id="img1" required>
-
-            <label>ছবি ২ এর লিংক (ঐচ্ছিক):</label>
-            <input type="url" id="img2">
-
-            <label>ছবি ৩ এর লিংক (ঐচ্ছিক):</label>
-            <input type="url" id="img3">
-
-            <label>ছবি ৪ এর লিংক (ঐচ্ছিক):</label>
-            <input type="url" id="img4">
-
-            <label>ছবি ৫ এর লিংক (ঐচ্ছিক):</label>
-            <input type="url" id="img5">
-
-            <label>ছবি ৬ এর লিংক (ঐচ্ছিক):</label>
-            <input type="url" id="img6">
-
-            <label>বিস্তারিত বিবরণী:</label>
-            <textarea id="description" rows="4"></textarea>
-
-            <button type="submit">পণ্য সফলভাবে এড করুন</button>
-        </form>
+    <!-- Admin Password Protection -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2 style="color: #fff; margin-bottom: 15px;">🔒 এডমিন পাসওয়ার্ড দিন</h2>
+            <form id="loginForm">
+                <input type="password" id="adminPass" placeholder="পাসওয়ার্ড (admin123)" required>
+                <button type="submit">প্রবেশ করুন</button>
+            </form>
+            <p id="loginErr" style="color: #ef4444; margin-top: 10px; font-size: 14px; display: none;"></p>
+        </div>
     </div>
 
-    <!-- Product List -->
-    <div class="box">
-        <h2>বিদ্যমান পণ্যসমূহ</h2>
-        <div id="productList">লোড হচ্ছে...</div>
-    </div>
+    <!-- Admin Panel Body -->
+    <div class="container" id="adminDashboard" style="display: none;">
+        <h1>⚙️ এডমিন কন্ট্রোল প্যানেল</h1>
 
-    <!-- Orders List -->
-    <div class="box">
-        <h2>গ্রাহকদের অর্ডারসমূহ</h2>
-        <div id="orderList">লোড হচ্ছে...</div>
-    </div>
-</div>
-
-<script>
-    async function loadAdminData() {
-        // Load Products
-        const pRes = await fetch('/products');
-        const products = await pRes.json();
-        document.getElementById('productList').innerHTML = products.map(p => `
-            <div class="item">
-                <div>
-                    <strong>${p.title}</strong> — ৳ ${p.price} (${p.images.length}টি ছবি)
+        <!-- Delivery Charge Settings -->
+        <div class="box">
+            <h2>🚚 ডেলিভারি চার্জ সেটিংস</h2>
+            <form id="settingsForm">
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex:1;">
+                        <label>ঢাকার ভেতরে (৳):</label>
+                        <input type="number" id="insideDhaka" required>
+                    </div>
+                    <div style="flex:1;">
+                        <label>ঢাকার বাইরে (৳):</label>
+                        <input type="number" id="outsideDhaka" required>
+                    </div>
                 </div>
-                <button class="btn-danger" onclick="deleteProduct('${p._id}')">ডিলিট</button>
-            </div>
-        `).join('') || 'কোনো পণ্য নেই।';
+                <button type="submit" style="background: #10b981;">ডেলিভারি চার্জ সেভ করুন</button>
+            </form>
+        </div>
 
-        // Load Orders
-        const oRes = await fetch('/orders');
-        const orders = await oRes.json();
-        document.getElementById('orderList').innerHTML = orders.map(o => `
-            <div style="border-bottom: 1px solid #334155; padding: 10px 0;">
-                <p><strong>গ্রাহক:</strong> ${o.customerName} (${o.phone})</p>
-                <p><strong>পণ্য:</strong> ${o.productTitle} — ৳ ${o.productPrice}</p>
-                <p><strong>ঠিকানা:</strong> ${o.address}</p>
-            </div>
-        `).join('') || 'কোনো অর্ডার নেই।';
-    }
+        <!-- Add Product Form -->
+        <div class="box">
+            <h2>নতুন ঘড়ি যুক্ত করুন (সর্বোচ্চ ৬টি ছবি)</h2>
+            <form id="addProductForm">
+                <label>পণ্যের নাম:</label>
+                <input type="text" id="title" placeholder="যেমন: Curren Chronograph Watch" required>
 
-    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const images = [
-            document.getElementById('img1').value,
-            document.getElementById('img2').value,
-            document.getElementById('img3').value,
-            document.getElementById('img4').value,
-            document.getElementById('img5').value,
-            document.getElementById('img6').value
-        ].filter(url => url.trim() !== '');
+                <label>দাম (টাকায়):</label>
+                <input type="number" id="price" placeholder="যেমন: 1500" required>
 
-        const productData = {
-            title: document.getElementById('title').value,
-            price: document.getElementById('price').value,
-            images: images,
-            description: document.getElementById('description').value
-        };
+                <label>ছবি ১ (মেইন ছবি URL):</label>
+                <input type="url" id="img1" placeholder="https://..." required>
 
-        const res = await fetch('/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productData)
+                <label>ছবি ২ (ঐচ্ছিক):</label>
+                <input type="url" id="img2" placeholder="https://...">
+
+                <label>ছবি ৩ (ঐচ্ছিক):</label>
+                <input type="url" id="img3" placeholder="https://...">
+
+                <label>ছবি ৪ (ঐচ্ছিক):</label>
+                <input type="url" id="img4" placeholder="https://...">
+
+                <label>ছবি ৫ (ঐচ্ছিক):</label>
+                <input type="url" id="img5" placeholder="https://...">
+
+                <label>ছবি ৬ (ঐচ্ছিক):</label>
+                <input type="url" id="img6" placeholder="https://...">
+
+                <label>বিস্তারিত বিবরণী:</label>
+                <textarea id="description" rows="3" placeholder="পণ্য সম্পর্কে বিবরণী..."></textarea>
+
+                <button type="submit">পণ্য আপলোড করুন</button>
+            </form>
+        </div>
+
+        <!-- Products List -->
+        <div class="box">
+            <h2>সকল পণ্যসমূহ</h2>
+            <div id="productList">লোড হচ্ছে...</div>
+        </div>
+
+        <!-- Orders Management -->
+        <div class="box">
+            <h2>গ্রাহকদের সাম্প্রতিক অর্ডার</h2>
+            <div id="orderList">লোড হচ্ছে...</div>
+        </div>
+    </div>
+
+    <script>
+        if (sessionStorage.getItem('adminAuth') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            loadAdminData();
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('adminPass').value;
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            if (res.ok) {
+                sessionStorage.setItem('adminAuth', 'true');
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadAdminData();
+            } else {
+                document.getElementById('loginErr').style.display = 'block';
+                document.getElementById('loginErr').innerText = 'ভুল পাসওয়ার্ড!';
+            }
         });
 
-        if (res.ok) {
-            alert('পণ্য সফলভাবে যুক্ত হয়েছে!');
-            document.getElementById('addProductForm').reset();
-            loadAdminData();
-        }
-    });
+        async function loadAdminData() {
+            // Settings
+            const sRes = await fetch('/settings');
+            const settings = await sRes.json();
+            document.getElementById('insideDhaka').value = settings.insideDhaka;
+            document.getElementById('outsideDhaka').value = settings.outsideDhaka;
 
-    async function deleteProduct(id) {
-        if (confirm('আপনি কি এই পণ্যটি ডিলিট করতে চান?')) {
-            await fetch(`/products/${id}`, { method: 'DELETE' });
-            loadAdminData();
-        }
-    }
+            // Products
+            const pRes = await fetch('/products');
+            const products = await pRes.json();
+            document.getElementById('productList').innerHTML = products.map(p => `
+                <div class="item">
+                    <div><strong>${p.title}</strong> — ৳ ${p.price} (${(p.images||[]).length}টি ছবি)</div>
+                    <button class="btn-danger" onclick="deleteProduct('${p._id}')">ডিলিট</button>
+                </div>
+            `).join('') || '<p style="color: #94a3b8;">কোনো পণ্য নেই।</p>';
 
-    loadAdminData();
-</script>
+            // Orders
+            const oRes = await fetch('/orders');
+            const orders = await oRes.json();
+            document.getElementById('orderList').innerHTML = orders.map(o => `
+                <div style="border-bottom: 1px solid #334155; padding: 12px 0;">
+                    <p><strong>পণ্য:</strong> <span style="color: #38bdf8;">${o.productTitle}</span></p>
+                    <p><strong>গ্রাহক:</strong> ${o.customerName} | 📞 ${o.phone}</p>
+                    <p><strong>ঠিকানা:</strong> ${o.address} (${o.deliveryArea || 'N/A'})</p>
+                    <p style="color: #f59e0b; font-weight: bold; margin-top: 4px;">
+                        পণ্য: ৳${o.productPrice} + ডেলিভারি: ৳${o.deliveryCharge || 0} = সর্বমোট: ৳${o.totalPrice || o.productPrice}
+                    </p>
+                    <p style="font-size: 11px; color: #94a3b8; margin-top: 2px;">তারিখ: ${new Date(o.createdAt).toLocaleString('bn-BD')}</p>
+                </div>
+            `).join('') || '<p style="color: #94a3b8;">কোনো অর্ডার আসেনি।</p>';
+        }
+
+        // Save Delivery Charge
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                insideDhaka: Number(document.getElementById('insideDhaka').value),
+                outsideDhaka: Number(document.getElementById('outsideDhaka').value)
+            };
+            const res = await fetch('/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) alert('ডেলিভারি চার্জ সফলভাবে আপডেট হয়েছে!');
+        });
+
+        // Add Product
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const images = [
+                document.getElementById('img1').value,
+                document.getElementById('img2').value,
+                document.getElementById('img3').value,
+                document.getElementById('img4').value,
+                document.getElementById('img5').value,
+                document.getElementById('img6').value
+            ].filter(url => url.trim() !== '');
+
+            const productData = {
+                title: document.getElementById('title').value,
+                price: Number(document.getElementById('price').value),
+                images: images,
+                description: document.getElementById('description').value
+            };
+
+            const res = await fetch('/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData)
+            });
+
+            if (res.ok) {
+                alert('পণ্য সফলভাবে যুক্ত হয়েছে!');
+                document.getElementById('addProductForm').reset();
+                loadAdminData();
+            }
+        });
+
+        async function deleteProduct(id) {
+            if (confirm('আপনি কি এই পণ্যটি মুছে ফেলতে চান?')) {
+                await fetch(`/products/${id}`, { method: 'DELETE' });
+                loadAdminData();
+            }
+        }
+    </script>
 </body>
 </html>
