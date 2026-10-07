@@ -1,13 +1,20 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(cors());
+
+// CORS হ্যান্ডলার (কোনো বাড়তি প্যাকেজ লাগবে না)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    next();
+});
+
 app.use(express.json());
 
-// স্ট্যাটিক ফাইল ও পেজ সার্ভ করা
+// স্ট্যাটিক ফাইল ও পেজ সার্ভ
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
@@ -15,7 +22,9 @@ app.get('/', (req, res) => {
 });
 
 // ডাটাবেজ কানেকশন
-const MONGO_URI = process.env.MONGO_URI || "YOUR_MONGODB_URI_HERE";
+// নোট: Render-এ Environment Variable সেট করা না থাকলে নিচে "আপনার_MONGODB_LINK_এখানে_দিন" উঠিয়ে আসল লিংক বসান
+const MONGO_URI = process.env.MONGO_URI || "আপনার_MONGODB_LINK_এখানে_দিন";
+
 mongoose.connect(MONGO_URI)
     .then(() => console.log("MongoDB Connected Successfully"))
     .catch(err => console.error("MongoDB Connection Error:", err));
@@ -41,7 +50,7 @@ const orderSchema = new mongoose.Schema({
 const Product = mongoose.model('Product', productSchema);
 const Order = mongoose.model('Order', orderSchema);
 
-// API এন্ট্রিপয়েন্ট
+// API Routes
 app.get('/products', async (req, res) => {
     try {
         const products = await Product.find().sort({ createdAt: -1 });
