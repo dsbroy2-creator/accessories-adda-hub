@@ -1,12 +1,13 @@
 {
-  "name": "accessories-adda-hub-complete",
+  "name": "accessories-adda-hub",
   "version": "1.0.0",
-  "private": true,
+  "description": "Watch Shop Backend",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "multer": "^2.0.2"
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0"
   }
 }
