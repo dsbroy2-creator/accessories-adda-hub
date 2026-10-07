@@ -4,7 +4,6 @@ const path = require('path');
 
 const app = express();
 
-// CORS Handling
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -13,27 +12,26 @@ app.use((req, res, next) => {
     next();
 });
 
+// বড় ছবি ও ডেটা হ্যান্ডেল করার জন্য পর্যাপ্ত লিমিট
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(__dirname));
 
-// Routing
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
-// Database Connection
 const MONGO_URI = process.env.MONGO_URI || 'আপনার_MONGODB_URI_এখানে_দিন';
-const ADMIN_PASSWORD = 'admin123'; // পাসওয়ার্ড নিশ্চিত করা হলো
+const ADMIN_PASSWORD = 'admin123'; // ফিক্সড পাসওয়ার্ড
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('MongoDB Connected Successfully'))
     .catch(err => console.log('MongoDB Error:', err.message));
 
-// Schemas
 const productSchema = new mongoose.Schema({
     title: { type: String, required: true },
     price: { type: Number, required: true },
     oldPrice: Number,
+    category: String,
     stockStatus: { type: String, default: 'In Stock' },
     images: [String],
     description: String,
@@ -61,7 +59,6 @@ const Product = mongoose.model('Product', productSchema);
 const Order = mongoose.model('Order', orderSchema);
 const Settings = mongoose.model('Settings', settingsSchema);
 
-// Admin Login API
 app.post('/api/admin/login', (req, res) => {
     if (req.body.password === ADMIN_PASSWORD) {
         res.json({ success: true });
@@ -70,13 +67,12 @@ app.post('/api/admin/login', (req, res) => {
     }
 });
 
-// Products API
 app.get('/products', async (req, res) => {
     try {
         const products = await Product.find().sort({ createdAt: -1 });
         res.json(products);
     } catch (err) {
-        res.status(500).json({ error: 'পণ্য লোড করতে ব্যর্থ হয়েছে' });
+        res.status(500).json({ error: 'পণ্য লোড ব্যর্থ' });
     }
 });
 
@@ -86,20 +82,19 @@ app.post('/products', async (req, res) => {
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (err) {
-        res.status(500).json({ error: 'পণ্য যুক্ত করতে ব্যর্থ হয়েছে' });
+        res.status(500).json({ error: 'পণ্য আপলোড ব্যর্থ' });
     }
 });
 
 app.delete('/products/:id', async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);
-        res.json({ message: 'পণ্য ডিলিট হয়েছে' });
+        res.json({ message: 'ডিলিট সফল' });
     } catch (err) {
-        res.status(500).json({ error: 'ডিলিট করতে ব্যর্থ হয়েছে' });
+        res.status(500).json({ error: 'ডিলিট ব্যর্থ' });
     }
 });
 
-// Settings API (Delivery Charges)
 app.get('/settings', async (req, res) => {
     try {
         let settings = await Settings.findOne();
@@ -109,26 +104,23 @@ app.get('/settings', async (req, res) => {
         }
         res.json(settings);
     } catch (err) {
-        res.status(500).json({ error: 'লোডের সমস্যা' });
+        res.status(500).json({ error: 'সেটিংস লোড ব্যর্থ' });
     }
 });
 
 app.post('/settings', async (req, res) => {
     try {
         let settings = await Settings.findOne();
-        if (!settings) {
-            settings = new Settings();
-        }
+        if (!settings) settings = new Settings();
         settings.insideDhaka = req.body.insideDhaka;
         settings.outsideDhaka = req.body.outsideDhaka;
         await settings.save();
-        res.json({ message: 'সেটিংস আপডেট হয়েছে' });
+        res.json({ message: 'আপডেট সফল' });
     } catch (err) {
         res.status(500).json({ error: 'আপডেট ব্যর্থ' });
     }
 });
 
-// Orders API
 app.get('/orders', async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -142,11 +134,11 @@ app.post('/orders', async (req, res) => {
     try {
         const newOrder = new Order(req.body);
         await newOrder.save();
-        res.status(201).json({ message: 'অর্ডার সফল হয়েছে' });
+        res.status(201).json({ message: 'অর্ডার সফল' });
     } catch (err) {
         res.status(500).json({ error: 'অর্ডার ব্যর্থ' });
     }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Shop running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
