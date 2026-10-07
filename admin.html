@@ -18,7 +18,7 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: var(--bg-primary); color: var(--text); padding: 20px; min-height: 100vh; }
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 1100px; margin: 0 auto; display: none; }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--border-light); padding-bottom: 15px; }
         h1 { color: #38bdf8; font-size: 22px; }
         .box { background: var(--bg-box); padding: 25px; border-radius: 14px; border: 1px solid var(--border-light); margin-bottom: 25px; }
@@ -37,7 +37,7 @@
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="adminContainer">
         <div class="dashboard-header">
             <h1>⚙️ Accessories Adda Hub - মাস্টার ড্যাশবোর্ড</h1>
         </div>
@@ -139,9 +139,15 @@
     </div>
 
     <script>
-        // পেজ ওপেন হওয়ার সাথেই সরাসরি ডাটা লোড হবে, কোনো লগইন বা পাসওয়ার্ডের ঝামেলা নেই
         window.onload = function() {
-            loadAdminData();
+            let pass = prompt("দয়া করে এডমিন পাসওয়ার্ড দিন:");
+            if (pass === "Mahir98") {
+                document.getElementById('adminContainer').style.display = 'block';
+                loadAdminData();
+            } else {
+                alert("ভুল পাসওয়ার্ড!");
+                document.body.innerHTML = "<h2 style='color:red; text-align:center; margin-top:100px;'>অ্যাক্সেস ডিনাইড (Access Denied)</h2>";
+            }
         };
 
         function previewImage(input, previewId) {
