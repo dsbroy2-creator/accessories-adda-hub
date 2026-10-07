@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -24,9 +22,9 @@
         h2 { font-size: 18px; color: #f59e0b; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 
         input, textarea { width: 100%; padding: 10px; margin: 6px 0 14px; background: #0f172a; border: 1px solid var(--border); color: #fff; border-radius: 6px; outline: none; }
-        input:focus, textarea:focus { border-color: #38bdf8; }
+        input[type="file"] { padding: 8px; background: #111827; border: 1px dashed var(--accent); cursor: pointer; }
 
-        button { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        button { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
         button:hover { opacity: 0.9; }
         .btn-danger { background: #ef4444; width: auto; padding: 6px 12px; font-size: 12px; }
         
@@ -72,9 +70,9 @@
             </form>
         </div>
 
-        <!-- Add Product Form -->
+        <!-- Add Product Form (Gallery Upload) -->
         <div class="box">
-            <h2>নতুন ঘড়ি যুক্ত করুন (সর্বোচ্চ ৬টি ছবি)</h2>
+            <h2>নতুন ঘড়ি যুক্ত করুন (গ্যালারি থেকে ছবি সিলেক্ট করুন)</h2>
             <form id="addProductForm">
                 <label>পণ্যের নাম:</label>
                 <input type="text" id="title" placeholder="যেমন: Curren Chronograph Watch" required>
@@ -82,23 +80,8 @@
                 <label>দাম (টাকায়):</label>
                 <input type="number" id="price" placeholder="যেমন: 1500" required>
 
-                <label>ছবি ১ (মেইন ছবি URL):</label>
-                <input type="url" id="img1" placeholder="https://..." required>
-
-                <label>ছবি ২ (ঐচ্ছিক):</label>
-                <input type="url" id="img2" placeholder="https://...">
-
-                <label>ছবি ৩ (ঐচ্ছিক):</label>
-                <input type="url" id="img3" placeholder="https://...">
-
-                <label>ছবি ৪ (ঐচ্ছিক):</label>
-                <input type="url" id="img4" placeholder="https://...">
-
-                <label>ছবি ৫ (ঐচ্ছিক):</label>
-                <input type="url" id="img5" placeholder="https://...">
-
-                <label>ছবি ৬ (ঐচ্ছিক):</label>
-                <input type="url" id="img6" placeholder="https://...">
+                <label>গ্যালারি থেকে ছবি সিলেক্ট করুন (সর্বোচ্চ ৬টি একসাথে সিলেক্ট করতে পারবেন):</label>
+                <input type="file" id="productImages" accept="image/*" multiple required>
 
                 <label>বিস্তারিত বিবরণী:</label>
                 <textarea id="description" rows="3" placeholder="পণ্য সম্পর্কে বিবরণী..."></textarea>
@@ -175,60 +158,59 @@
                     <p style="color: #f59e0b; font-weight: bold; margin-top: 4px;">
                         পণ্য: ৳${o.productPrice} + ডেলিভারি: ৳${o.deliveryCharge || 0} = সর্বমোট: ৳${o.totalPrice || o.productPrice}
                     </p>
-                    <p style="font-size: 11px; color: #94a3b8; margin-top: 2px;">তারিখ: ${new Date(o.createdAt).toLocaleString('bn-BD')}</p>
                 </div>
             `).join('') || '<p style="color: #94a3b8;">কোনো অর্ডার আসেনি।</p>';
         }
 
-        // Save Delivery Charge
-        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                insideDhaka: Number(document.getElementById('insideDhaka').value),
-                outsideDhaka: Number(document.getElementById('outsideDhaka').value)
-            };
-            const res = await fetch('/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (res.ok) alert('ডেলিভারি চার্জ সফলভাবে আপডেট হয়েছে!');
-        });
-
-        // Add Product
+        // Add Product Form Handler (Image Base64 Converting)
         document.getElementById('addProductForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const images = [
-                document.getElementById('img1').value,
-                document.getElementById('img2').value,
-                document.getElementById('img3').value,
-                document.getElementById('img4').value,
-                document.getElementById('img5').value,
-                document.getElementById('img6').value
-            ].filter(url => url.trim() !== '');
+            const files = document.getElementById('productImages').files;
+            
+            if (files.length > 6) {
+                alert('আপনি সর্বোচ্চ ৬টি ছবি সিলেক্ট করতে পারবেন!');
+                return;
+            }
 
-            const productData = {
-                title: document.getElementById('title').value,
-                price: Number(document.getElementById('price').value),
-                images: images,
-                description: document.getElementById('description').value
-            };
-
-            const res = await fetch('/products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(productData)
+            const imagePromises = Array.from(files).map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(file);
+                });
             });
 
-            if (res.ok) {
-                alert('পণ্য সফলভাবে যুক্ত হয়েছে!');
-                document.getElementById('addProductForm').reset();
-                loadAdminData();
+            try {
+                const base64Images = await Promise.all(imagePromises);
+
+                const productData = {
+                    title: document.getElementById('title').value,
+                    price: Number(document.getElementById('price').value),
+                    images: base64Images,
+                    description: document.getElementById('description').value
+                };
+
+                const res = await fetch('/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+
+                if (res.ok) {
+                    alert('পণ্য সফলভাবে যুক্ত হয়েছে!');
+                    document.getElementById('addProductForm').reset();
+                    loadAdminData();
+                } else {
+                    alert('আপলোড করতে সমস্যা হয়েছে।');
+                }
+            } catch (err) {
+                alert('ছবি রূপান্তর করতে সমস্যা হয়েছে।');
             }
         });
 
         async function deleteProduct(id) {
-            if (confirm('আপনি কি এই পণ্যটি মুছে ফেলতে চান?')) {
+            if (confirm('মুছে ফেলতে চান?')) {
                 await fetch(`/products/${id}`, { method: 'DELETE' });
                 loadAdminData();
             }
